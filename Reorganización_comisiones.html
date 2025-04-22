@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inscripción Comisiones</title>
+    <style>
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; }
+        .form-section { margin-bottom: 30px; border-bottom: 2px solid #ccc; padding-bottom: 20px; }
+        .comision { margin: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .cupo-lleno { background-color: #ffebee; color: #c62828; }
+        .cupo-disponible { background-color: #e8f5e9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        #tabla-inscripciones { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Formulario de registro -->
+        <div class="form-section">
+            <h2>Datos del alumno</h2>
+            <input type="text" id="nombre" placeholder="Nombre y apellido">
+            <input type="text" id="legajo" placeholder="Legajo">
+            <select id="comision-original">
+                <option value="">Seleccione comisión original</option>
+                <option value="1">Comisión 1</option>
+                <option value="2">Comisión 2</option>
+                <option value="7">Comisión 7</option>
+                <option value="9">Comisión 9</option>
+            </select>
+        </div>
+
+        <!-- Selección de comisiones (siempre visible) -->
+        <div class="form-section">
+            <h2>Nuevas comisiones disponibles</h2>
+            <div id="comisiones-container"></div>
+        </div>
+
+        <!-- Contraseña para ver tabla -->
+        <div class="form-section">
+            <h3>Ver tabla de inscripciones (solo autorizado)</h3>
+            <input type="password" id="admin-pass" placeholder="Contraseña de administrador">
+            <button onclick="accederAdmin()">Ver tabla</button>
+            <p id="error-admin" style="color:red;"></p>
+        </div>
+
+        <!-- Tabla de inscripciones protegida -->
+        <div id="tabla-inscripciones">
+            <h2>Inscripciones</h2>
+            <table id="inscripciones-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Legajo</th>
+                        <th>Comisión Original</th>
+                        <th>Comisión Nueva</th>
+                    </tr>
+                </thead>
+                <tbody id="inscripciones-body"></tbody>
+            </table>
+
+            <!-- Reinicio de datos -->
+            <button onclick="localStorage.clear(); location.reload();" style="margin-top: 20px;">
+                Reiniciar todo (solo para pruebas)
+            </button>
+        </div>
+    </div>
+
+<script>
+const PASSWORD_CORRECTA = "admin123";
+
+const cupos = {
+    'Lunes 11 am': 46,
+    'Miércoles 15:30': 46,
+    'Lunes Com 8': 8,
+    'Martes Com 4': 8,
+    'Martes Com 5': 8,
+    'Miércoles Com 3': 8,
+    'Miércoles Com 6': 8
+};
+
+let inscripciones = JSON.parse(localStorage.getItem('inscripciones')) || [];
+
+// Mostrar comisiones
+function renderComisiones() {
+    const container = document.getElementById('comisiones-container');
+    container.innerHTML = '';
+
+    Object.entries(cupos).forEach(([comision, cupo]) => {
+        const inscritos = inscripciones.filter(i => i.comisionNueva === comision).length;
+        const disponible = cupo - inscritos;
+
+        const div = document.createElement('div');
+        div.className = `comision ${disponible <= 0 ? 'cupo-lleno' : 'cupo-disponible'}`;
+        div.innerHTML = `
+            <h3>${comision} (${disponible} cupos disponibles)</h3>
+            <button ${disponible <= 0 ? 'disabled' : ''} onclick="inscribir('${comision}')">
+                Inscribirse
+            </button>
+            ${disponible <= 0 ? '<p class="error">CUPO LLENO - Seleccione otra comisión</p>' : ''}
+        `;
+        container.appendChild(div);
+    });
+}
+
+// Inscripción
+function inscribir(comision) {
+    const nombre = document.getElementById('nombre').value.trim();
+    const legajo = document.getElementById('legajo').value.trim();
+    const comisionOriginal = document.getElementById('comision-original').value;
+
+    if (!nombre || !legajo || !comisionOriginal) {
+        alert('Complete todos los datos obligatorios');
+        return;
+    }
+
+    const yaInscripto = inscripciones.some(i => i.legajo === legajo);
+    if (yaInscripto) {
+        alert('Este legajo ya está inscripto en una comisión.');
+        return;
+    }
+
+    const cupoDisponible = cupos[comision] - inscripciones.filter(i => i.comisionNueva === comision).length;
+    if (cupoDisponible <= 0) {
+        alert('Cupo completo, seleccione otra comisión');
+        return;
+    }
+
+    inscripciones.push({
+        nombre,
+        legajo,
+        comisionOriginal,
+        comisionNueva: comision,
+        fecha: new Date().toISOString()
+    });
+
+    localStorage.setItem('inscripciones', JSON.stringify(inscripciones));
+    renderComisiones();
+    renderTabla(); // por si ya están viendo la tabla
+}
+
+// Mostrar tabla
+function renderTabla() {
+    const tbody = document.getElementById('inscripciones-body');
+    tbody.innerHTML = '';
+
+    inscripciones.forEach(inscripcion => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${inscripcion.nombre}</td>
+            <td>${inscripcion.legajo}</td>
+            <td>${inscripcion.comisionOriginal}</td>
+            <td>${inscripcion.comisionNueva}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Autenticación para ver la tabla
+function accederAdmin() {
+    const input = document.getElementById('admin-pass').value;
+    if (input === PASSWORD_CORRECTA) {
+        document.getElementById('tabla-inscripciones').style.display = 'block';
+        document.getElementById('error-admin').innerText = '';
+        renderTabla();
+    } else {
+        document.getElementById('error-admin').innerText = 'Contraseña incorrecta';
+    }
+}
+
+// Inicial
+renderComisiones();
+</script>
+</body>
+</html>
