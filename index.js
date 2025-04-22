@@ -2,7 +2,7 @@
 import { db } from './firebase.js';
 import { collection, addDoc, onSnapshot, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const PASSWORD_CORRECTA = "admin123";
+const PASSWORD_CORRECTA = "jefesorganica";
 
 const cupos = {
     'Lunes 11 am': 46,
@@ -29,7 +29,7 @@ function renderComisiones() {
         div.className = `comision ${disponible <= 0 ? 'cupo-lleno' : 'cupo-disponible'}`;
         div.innerHTML = `
             <h3>${comision} (${disponible} cupos disponibles)</h3>
-            <button ${disponible <= 0 ? 'disabled' : ''} onclick="inscribir('${comision}')">
+            <button ${disponible <= 0 ? 'disabled' : ''} onclick="window.inscribir('${comision}')">
                 Inscribirse
             </button>
             ${disponible <= 0 ? '<p class="error">CUPO LLENO - Seleccione otra comisión</p>' : ''}
@@ -39,7 +39,7 @@ function renderComisiones() {
 }
 
 // Inscripción
-async function inscribir(comision) {
+window.inscribir = async function(comision) {
     const nombre = document.getElementById('nombre').value.trim();
     const legajo = document.getElementById('legajo').value.trim();
     const comisionOriginal = document.getElementById('comision-original').value;
@@ -79,7 +79,7 @@ async function inscribir(comision) {
         console.error('Error al guardar: ', error);
         alert('Hubo un error, intentá de nuevo.');
     }
-}
+};
 
 // Mostrar tabla
 function renderTabla() {
