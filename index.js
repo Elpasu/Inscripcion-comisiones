@@ -28,7 +28,8 @@ function renderComisiones() {
         const div = document.createElement('div');
         div.className = `comision ${disponible <= 0 ? 'cupo-lleno' : 'cupo-disponible'}`;
         div.innerHTML = `
-            <h3>${comision} (${disponible} cupos disponibles)</h3>
+            <h3>${comision}</h3>
+            <p class="cupos">${disponible} cupos disponibles</p>
             <button ${disponible <= 0 ? 'disabled' : ''} onclick="window.inscribir('${comision}')">
                 Inscribirse
             </button>
