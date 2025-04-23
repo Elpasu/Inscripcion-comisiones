@@ -7,11 +7,11 @@ const PASSWORD_CORRECTA = "jefesorganica";
 const cupos = {
     'Lunes 11 am': 46,
     'Miércoles 15:30': 46,
-    'Lunes Com 8': 8,
-    'Martes Com 4': 8,
-    'Martes Com 5': 8,
-    'Miércoles Com 3': 8,
-    'Miércoles Com 6': 8
+    'Lunes 15hs (Com 8)': 8,
+    'Martes 7 am (Com 4)': 8,
+    'Martes 12 am (Com 5)': 8,
+    'Miércoles 7 am (Com 3)': 8,
+    'Miércoles 11:30 am (Com 6)': 8
 };
 
 let inscripciones = [];
