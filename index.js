@@ -42,18 +42,18 @@ function renderComisiones() {
 // Inscripción
 window.inscribir = async function(comision) {
     const nombre = document.getElementById('nombre').value.trim();
-    const DNI = document.getElementById('DNI').value.trim();
+    const legajo = document.getElementById('legajo').value.trim();
     const comisionOriginal = document.getElementById('comision-original').value;
 
-    if (!nombre || !DNI || !comisionOriginal) {
+    if (!nombre || !legajo || !comisionOriginal) {
         alert('Complete todos los datos obligatorios');
         return;
     }
 
     // Verificar legajo duplicado en Firestore
-    const yaInscripto = inscripciones.some(i => i.DNI === legajo);
+    const yaInscripto = inscripciones.some(i => i.legajo === legajo);
     if (yaInscripto) {
-        alert('Este DNI ya está inscripto en una comisión.');
+        alert('Este legajo ya está inscripto en una comisión.');
         return;
     }
 
@@ -91,7 +91,7 @@ function renderTabla() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${inscripcion.nombre}</td>
-            <td>${inscripcion.DNI}</td>
+            <td>${inscripcion.legajo}</td>
             <td>${inscripcion.comisionOriginal}</td>
             <td>${inscripcion.comisionNueva}</td>
         `;
