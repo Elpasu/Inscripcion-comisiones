@@ -42,10 +42,10 @@ function renderComisiones() {
 // Inscripción
 window.inscribir = async function(comision) {
     const nombre = document.getElementById('nombre').value.trim();
-    const legajo = document.getElementById('DNI').value.trim();
+    const DNI = document.getElementById('DNI').value.trim();
     const comisionOriginal = document.getElementById('comision-original').value;
 
-    if (!nombre || !legajo || !comisionOriginal) {
+    if (!nombre || !DNI || !comisionOriginal) {
         alert('Complete todos los datos obligatorios');
         return;
     }
