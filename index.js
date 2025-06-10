@@ -11,7 +11,7 @@ const cupos = {
     'Miércoles 7 am (Com 3)': 15,
     'Miércoles 11:30 am (Com 6)': 15,
     'Jueves 7 am (Com 7)': 15,
-    'Jueves 12 am (Com 1)'; 15,
+    'Jueves 12 am (Com 1)': 15,
     
 };
 
