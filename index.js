@@ -66,7 +66,7 @@ window.inscribir = async function(comision) {
 
     const inscripcion = {
         nombre,
-        DNI,
+        legajo,
         comisionOriginal,
         comisionNueva: comision,
         fecha: new Date().toISOString()
