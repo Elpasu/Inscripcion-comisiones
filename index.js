@@ -5,13 +5,14 @@ import { collection, addDoc, onSnapshot, deleteDoc, getDocs } from "https://www.
 const PASSWORD_CORRECTA = "jefesorganica";
 
 const cupos = {
-    'Lunes 11 am': 46,
-    'Miércoles 15:30': 46,
-    'Lunes 15hs (Com 8)': 8,
-    'Martes 7 am (Com 4)': 8,
-    'Martes 12 am (Com 5)': 8,
-    'Miércoles 7 am (Com 3)': 8,
-    'Miércoles 11:30 am (Com 6)': 8
+
+    'Martes 7 am (Com 4)': 15,
+    'Martes 12 am (Com 5)': 15,
+    'Miércoles 7 am (Com 3)': 15,
+    'Miércoles 11:30 am (Com 6)': 15,
+    'Jueves 7 am (Com 7)': 15,
+    'Jueves 12 am (Com 1)'; 15,
+    
 };
 
 let inscripciones = [];
