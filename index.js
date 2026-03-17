@@ -143,6 +143,9 @@ window.submitInscripcion = async function() {
         <div style="font-size:14px; color:var(--text-muted);">
           Quedaste inscripto en la Comisión ${comisiones.find(c => c.id === comisionSeleccionada)?.num}.
         </div>
+        <div style="font-size:14px; color:var(--text-muted); margin-top:4px;">
+          ${comisiones.find(c => c.id === comisionSeleccionada)?.dia} · ${comisiones.find(c => c.id === comisionSeleccionada)?.hora}
+        </div>
       </div>
     `;
   } catch (error) {
