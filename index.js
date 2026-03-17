@@ -1,143 +1,227 @@
 // index.js
 import { db } from './firebase.js';
-import { collection, addDoc, onSnapshot, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import {
+  collection, addDoc, onSnapshot, deleteDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const PASSWORD_CORRECTA = "jefesorganica";
+const CUPO_MAX = 12;
 
-const cupos = {
-
-    'Martes 7 am (Com 4)': 16,
-    'Martes 12 am (Com 5)': 16,
-    'Miércoles 7 am (Com 3)': 16,
-    'Miércoles 11:30 am (Com 6)': 16,
-    'Jueves 7 am (Com 7)': 16,
-    'Jueves 12 am (Com 1)': 16,
-    
-};
+const comisiones = [
+  { id: 'com1',  num: '1',  dia: 'Jueves',     hora: '7:00 – 11:00 hs' },
+  { id: 'com2',  num: '2',  dia: 'Viernes',    hora: '7:00 – 11:00 hs' },
+  { id: 'com3',  num: '3',  dia: 'Miércoles',  hora: '7:00 – 11:00 hs' },
+  { id: 'com5a', num: '5A', dia: 'Jueves',     hora: '16:00 – 20:00 hs' },
+  { id: 'com6',  num: '6',  dia: 'Miércoles',  hora: '11:30 – 15:30 hs' },
+  { id: 'com7',  num: '7',  dia: 'Jueves',     hora: '12:00 – 16:00 hs' },
+  { id: 'com9',  num: '9',  dia: 'Viernes',    hora: '12:00 – 16:00 hs' },
+];
 
 let inscripciones = [];
+let comisionSeleccionada = null;
 
-// Mostrar comisiones
+// ---- Render comisiones ----
 function renderComisiones() {
-    const container = document.getElementById('comisiones-container');
-    container.innerHTML = '';
+  const container = document.getElementById('comisiones-container');
+  container.innerHTML = '';
 
-    Object.entries(cupos).forEach(([comision, cupo]) => {
-        const inscritos = inscripciones.filter(i => i.comisionNueva === comision).length;
-        const disponible = cupo - inscritos;
+  comisiones.forEach(com => {
+    const inscritos = inscripciones.filter(i => i.comisionNueva === com.id).length;
+    const disponible = CUPO_MAX - inscritos;
+    const lleno = disponible <= 0;
+    const casi = disponible <= 3 && disponible > 0;
+    const pct = Math.round((inscritos / CUPO_MAX) * 100);
+    const seleccionada = comisionSeleccionada === com.id;
 
-        const div = document.createElement('div');
-        div.className = `comision ${disponible <= 0 ? 'cupo-lleno' : 'cupo-disponible'}`;
-        div.innerHTML = `
-            <h3>${comision}</h3>
-            <p class="cupos">${disponible} cupos disponibles</p>
-            <button ${disponible <= 0 ? 'disabled' : ''} onclick="window.inscribir('${comision}')">
-                Inscribirse
-            </button>
-            ${disponible <= 0 ? '<p class="error">CUPO LLENO - Seleccione otra comisión</p>' : ''}
-        `;
-        container.appendChild(div);
-    });
+    const card = document.createElement('div');
+    card.className = `card ${lleno ? 'card-full' : ''} ${seleccionada ? 'card-selected' : ''}`;
+    if (!lleno) card.onclick = () => seleccionarComision(com.id);
+
+    const fillClass = lleno ? 'full-fill' : casi ? 'almost' : '';
+
+    card.innerHTML = `
+      ${lleno ? '<span class="full-badge">Cupo lleno</span>' : ''}
+      <div class="card-num">${com.num}</div>
+      <div class="card-day">${com.dia}</div>
+      <div class="card-hour">${com.hora}</div>
+      <div class="cupo-bar-wrap">
+        <div class="cupo-bar">
+          <div class="cupo-fill ${fillClass}" style="width:${pct}%"></div>
+        </div>
+        <span class="cupo-text">${disponible}/${CUPO_MAX}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
 }
 
-// Inscripción
-window.inscribir = async function(comision) {
-    const nombre = document.getElementById('nombre').value.trim();
-    const legajo = document.getElementById('legajo').value.trim();
-    const comisionOriginal = document.getElementById('comision-original').value;
+// ---- Seleccionar comisión ----
+function seleccionarComision(id) {
+  comisionSeleccionada = id;
+  renderComisiones();
 
-    if (!nombre || !legajo || !comisionOriginal) {
-        alert('Complete todos los datos obligatorios');
-        return;
-    }
+  const com = comisiones.find(c => c.id === id);
+  const summary = document.getElementById('selected-summary');
+  summary.innerHTML = `
+    <div class="selected-summary">
+      <div class="selected-summary-num">${com.num}</div>
+      <div class="selected-summary-info">
+        <div class="s-day">${com.dia}</div>
+        <div class="s-hour">${com.hora}</div>
+      </div>
+      <button class="btn-change" onclick="cambiarComision()">Cambiar</button>
+    </div>
+  `;
 
-    // Verificar legajo duplicado en Firestore
-    const yaInscripto = inscripciones.some(i => i.legajo === legajo);
-    if (yaInscripto) {
-        alert('Este legajo ya está inscripto en una comisión.');
-        return;
-    }
+  document.getElementById('panel-comisiones').style.display = 'none';
+  document.getElementById('panel-form').style.display = 'block';
 
-    // Verificar cupo
-    const cupoDisponible = cupos[comision] - inscripciones.filter(i => i.comisionNueva === comision).length;
-    if (cupoDisponible <= 0) {
-        alert('Cupo completo, seleccione otra comisión');
-        return;
-    }
+  setStep(2);
+  document.getElementById('nombre').focus();
+}
 
-    const inscripcion = {
-        nombre,
-        legajo,
-        comisionOriginal,
-        comisionNueva: comision,
-        fecha: new Date().toISOString()
-    };
-
-    try {
-        await addDoc(collection(db, 'inscripciones'), inscripcion);
-        alert('¡Inscripción guardada!');
-        document.getElementById('inscripcionForm').reset();
-    } catch (error) {
-        console.error('Error al guardar: ', error);
-        alert('Hubo un error, intentá de nuevo.');
-    }
+window.cambiarComision = function() {
+  comisionSeleccionada = null;
+  document.getElementById('panel-form').style.display = 'none';
+  document.getElementById('panel-comisiones').style.display = 'block';
+  document.getElementById('feedback').className = 'feedback';
+  setStep(1);
 };
 
-// Mostrar tabla
-function renderTabla() {
-    const tbody = document.getElementById('inscripciones-body');
-    tbody.innerHTML = '';
+// ---- Submit ----
+window.submitInscripcion = async function() {
+  const nombre = document.getElementById('nombre').value.trim();
+  const legajo = document.getElementById('legajo').value.trim();
+  const comisionOriginal = document.getElementById('comision-original').value;
+  const feedback = document.getElementById('feedback');
 
-    inscripciones.forEach(inscripcion => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${inscripcion.nombre}</td>
-            <td>${inscripcion.legajo}</td>
-            <td>${inscripcion.comisionOriginal}</td>
-            <td>${inscripcion.comisionNueva}</td>
-        `;
-        tbody.appendChild(tr);
+  feedback.className = 'feedback';
+
+  if (!nombre || !legajo || !comisionOriginal) {
+    showFeedback('err', 'Completá todos los campos antes de confirmar.');
+    return;
+  }
+  if (!/^\d+$/.test(legajo)) {
+    showFeedback('err', 'El DNI debe contener solo números.');
+    return;
+  }
+  if (!comisionSeleccionada) {
+    showFeedback('err', 'No hay comisión seleccionada.');
+    return;
+  }
+
+  const yaInscripto = inscripciones.some(i => i.legajo === legajo);
+  if (yaInscripto) {
+    showFeedback('err', 'Este DNI ya tiene una inscripción registrada.');
+    return;
+  }
+
+  const inscritos = inscripciones.filter(i => i.comisionNueva === comisionSeleccionada).length;
+  if (inscritos >= CUPO_MAX) {
+    showFeedback('err', 'Esta comisión ya no tiene cupos. Volvé a elegir.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-inscribir');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    await addDoc(collection(db, 'inscripciones'), {
+      nombre,
+      legajo,
+      comisionOriginal,
+      comisionNueva: comisionSeleccionada,
+      fecha: new Date().toISOString()
     });
+
+    setStep(3);
+    document.getElementById('panel-form').innerHTML = `
+      <div style="text-align:center; padding: 1rem 0;">
+        <div style="font-size:40px; margin-bottom:12px;">✓</div>
+        <div style="font-size:18px; font-weight:600; margin-bottom:6px;">¡Inscripción confirmada!</div>
+        <div style="font-size:14px; color:var(--text-muted);">
+          Quedaste inscripto en la Comisión ${comisiones.find(c => c.id === comisionSeleccionada)?.num}.
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    showFeedback('err', 'Hubo un error al guardar. Intentá de nuevo.');
+    btn.disabled = false;
+    btn.textContent = 'Confirmar inscripción';
+  }
+};
+
+function showFeedback(type, msg) {
+  const el = document.getElementById('feedback');
+  el.className = `feedback ${type}`;
+  el.textContent = msg;
 }
 
-// Autenticación para ver la tabla
+// ---- Steps ----
+function setStep(n) {
+  [1, 2, 3].forEach(i => {
+    const el = document.getElementById(`step${i}`);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  });
+}
+
+// ---- Admin ----
+window.toggleAdmin = function() {
+  const panel = document.getElementById('admin-panel');
+  panel.classList.toggle('visible');
+};
+
 window.accederAdmin = function() {
-    const input = document.getElementById('admin-pass').value;
-    if (input === PASSWORD_CORRECTA) {
-        document.getElementById('tabla-inscripciones').style.display = 'block';
-        document.getElementById('error-admin').innerText = '';
-        renderTabla();
-    } else {
-        document.getElementById('error-admin').innerText = 'Contraseña incorrecta';
-    }
+  const input = document.getElementById('admin-pass').value;
+  if (input === PASSWORD_CORRECTA) {
+    document.getElementById('tabla-inscripciones').style.display = 'block';
+    document.getElementById('error-admin').textContent = '';
+    renderTabla();
+  } else {
+    document.getElementById('error-admin').textContent = 'Contraseña incorrecta.';
+  }
 };
 
-// Reiniciar datos (solo para pruebas)
+function renderTabla() {
+  const tbody = document.getElementById('inscripciones-body');
+  tbody.innerHTML = '';
+  inscripciones.forEach(ins => {
+    const com = comisiones.find(c => c.id === ins.comisionNueva);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${ins.nombre}</td>
+      <td>${ins.legajo}</td>
+      <td>${ins.comisionOriginal}</td>
+      <td><span class="badge-com">Com. ${com ? com.num : ins.comisionNueva}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 window.reiniciarDatos = async function() {
-    if (confirm('¿Estás seguro de que querés eliminar todas las inscripciones? Esto no se puede deshacer.')) {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'inscripciones'));
-            querySnapshot.forEach(async (doc) => {
-                await deleteDoc(doc.ref);
-            });
-            alert('Datos reiniciados.');
-            location.reload();
-        } catch (error) {
-            console.error('Error al reiniciar: ', error);
-            alert('Hubo un error al reiniciar.');
-        }
+  if (!confirm('¿Seguro que querés eliminar TODAS las inscripciones? No se puede deshacer.')) return;
+  try {
+    const snapshot = await getDocs(collection(db, 'inscripciones'));
+    for (const doc of snapshot.docs) {
+      await deleteDoc(doc.ref);
     }
+    alert('Datos reiniciados correctamente.');
+    location.reload();
+  } catch (error) {
+    console.error('Error al reiniciar:', error);
+    alert('Hubo un error al reiniciar.');
+  }
 };
 
-// Cargar datos desde Firestore en tiempo real
-onSnapshot(collection(db, 'inscripciones'), (snapshot) => {
-    inscripciones = [];
-    snapshot.forEach((doc) => {
-        inscripciones.push(doc.data());
-    });
-    renderComisiones();
-    renderTabla(); // Actualiza la tabla si está visible
+// ---- Firestore en tiempo real ----
+onSnapshot(collection(db, 'inscripciones'), snapshot => {
+  inscripciones = snapshot.docs.map(doc => doc.data());
+  renderComisiones();
+  if (document.getElementById('tabla-inscripciones').style.display !== 'none') {
+    renderTabla();
+  }
 });
 
-// Inicial
 renderComisiones();
