@@ -126,6 +126,8 @@ window.submitInscripcion = async function() {
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
+  const comConfirmada = comisiones.find(c => c.id === comisionSeleccionada);
+
   try {
     await addDoc(collection(db, 'inscripciones'), {
       nombre,
@@ -141,10 +143,10 @@ window.submitInscripcion = async function() {
         <div style="font-size:40px; margin-bottom:12px;">✓</div>
         <div style="font-size:18px; font-weight:600; margin-bottom:6px;">¡Inscripción confirmada!</div>
         <div style="font-size:14px; color:var(--text-muted);">
-          Quedaste inscripto en la Comisión ${comisiones.find(c => c.id === comisionSeleccionada)?.num}.
+          Quedaste inscripto en la Comisión ${comConfirmada.num}.
         </div>
         <div style="font-size:14px; color:var(--text-muted); margin-top:4px;">
-          ${comisiones.find(c => c.id === comisionSeleccionada)?.dia} · ${comisiones.find(c => c.id === comisionSeleccionada)?.hora}
+          ${comConfirmada.dia} · ${comConfirmada.hora}
         </div>
       </div>
     `;
