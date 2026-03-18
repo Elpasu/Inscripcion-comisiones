@@ -1,7 +1,7 @@
 // index.js
 import { db } from './firebase.js';
 import {
-  collection, addDoc, onSnapshot, deleteDoc, getDocs
+  collection, addDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
@@ -205,19 +205,28 @@ function renderTabla() {
   });
 }
 
-window.reiniciarDatos = async function() {
-  if (!confirm('¿Seguro que querés eliminar TODAS las inscripciones? No se puede deshacer.')) return;
-  try {
-    const snapshot = await getDocs(collection(db, 'inscripciones'));
-    for (const doc of snapshot.docs) {
-      await deleteDoc(doc.ref);
-    }
-    alert('Datos reiniciados correctamente.');
-    location.reload();
-  } catch (error) {
-    console.error('Error al reiniciar:', error);
-    alert('Hubo un error al reiniciar.');
-  }
+window.descargarExcel = function() {
+  const filas = [['Nombre', 'DNI', 'Comisión origen', 'Comisión nueva', 'Día', 'Horario']];
+  inscripciones.forEach(ins => {
+    const com = comisiones.find(c => c.id === ins.comisionNueva);
+    filas.push([
+      ins.nombre,
+      ins.legajo,
+      ins.comisionOriginal,
+      com ? com.num : ins.comisionNueva,
+      com ? com.dia : '',
+      com ? com.hora : ''
+    ]);
+  });
+
+  const csv = filas.map(f => f.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `inscripciones_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
 // ---- Firestore en tiempo real ----
