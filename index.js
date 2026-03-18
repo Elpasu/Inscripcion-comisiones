@@ -4,7 +4,7 @@ import {
   collection, addDoc, onSnapshot, deleteDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const PASSWORD_CORRECTA = "jefesorganica";
+const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = 12;
 
 const comisiones = [
@@ -180,7 +180,7 @@ window.toggleAdmin = function() {
 
 window.accederAdmin = function() {
   const input = document.getElementById('admin-pass').value;
-  if (input === PASSWORD_CORRECTA) {
+  if (input === _p) {
     document.getElementById('tabla-inscripciones').style.display = 'block';
     document.getElementById('error-admin').textContent = '';
     renderTabla();
