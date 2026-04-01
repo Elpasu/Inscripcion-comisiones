@@ -334,13 +334,9 @@ async function fetchCurrentFile() {
 // Lee el index.js actual y precarga los valores en el panel
 function parseAndSyncFromSource(src) {
   try {
-    // CUPO_MAX
     const cupoMatch = src.match(/const CUPO_MAX\s*=\s*(\d+)/);
-    if (cupoMatch) {
-      document.getElementById('cupo-global').value = cupoMatch[1];
-    }
+    if (cupoMatch) document.getElementById('cupo-global').value = cupoMatch[1];
 
-    // comisiones[]
     const comMatch = src.match(/const comisiones\s*=\s*\[([\s\S]*?)\];/);
     if (comMatch) {
       const items = [];
@@ -348,18 +344,20 @@ function parseAndSyncFromSource(src) {
       while ((m = re.exec(comMatch[1])) !== null) {
         const obj = {};
         for (const [,k,v] of m[0].matchAll(/(\w+):\s*'([^']*)'/g)) obj[k] = v;
-        // CAMBIO: Se eliminó la línea que buscaba "cupo: X" en el string original para meterlo en obj.cupo
         if (obj.id) items.push(obj);
       }
       if (items.length) { comisiones = items; liveComisiones = JSON.parse(JSON.stringify(items)); renderComList(); }
     }
 
-    // <select id="comision-original"> options
-    const selMatch = src.match(/<select id="comision-original">([\s\S]*?)<\/select>/);
-    if (selMatch) {
+    // AHORA LEE EL ARRAY origenes DESDE EL JAVASCRIPT
+    const origMatch = src.match(/const origenes\s*=\s*\[([\s\S]*?)\];/);
+    if (origMatch) {
       const opts = [];
-      for (const [,val,label] of selMatch[1].matchAll(/<option value="([^"]*)">(.*?)<\/option>/g)) {
-        if (val) opts.push({ id: uid(), valor: val, label });
+      const re = /\{[^}]+\}/g; let m;
+      while ((m = re.exec(origMatch[1])) !== null) {
+        const obj = {};
+        for (const [,k,v] of m[0].matchAll(/(\w+):\s*'([^']*)'/g)) obj[k] = v;
+        if (obj.valor && obj.label) opts.push({ id: uid(), valor: obj.valor, label: obj.label });
       }
       if (opts.length) { origenes = opts; renderOrigList(); }
     }
@@ -495,12 +493,12 @@ function generateAndShow() {
 function generateConfigBlock() {
   const cupoMax = parseInt(document.getElementById('cupo-global').value)||12;
   const comsLines = comisiones.map(c =>
-    // CAMBIO: Se borró la parte del final que inyectaba ", cupo: XX"
     `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}' }`
   ).join(',\n');
-  const optLines = origenes.map(o =>
-    `          <option value="${o.valor.replace(/"/g,'&quot;')}">${o.label.replace(/</g,'&lt;')}</option>`
-  ).join('\n');
+  const origLines = origenes.map(o =>
+    `  { valor: '${q(o.valor)}', label: '${q(o.label)}' }`
+  ).join(',\n');
+  
   return `const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = ${cupoMax};
 
@@ -508,18 +506,25 @@ const comisiones = [
 ${comsLines}
 ];
 
-// ── OPCIONES COMISIÓN ORIGEN (pegar en index.html → <select id="comision-original">) ──
-// <option value="">Seleccioná tu comisión actual</option>
-${optLines.split('\n').map(l=>'// '+l.trim()).join('\n')}`;
+const origenes = [
+${origLines}
+];`;
 }
 
 // Genera el index.js COMPLETO reemplazando el bloque de config en el fuente original
 function generateFullIndexJs(originalSrc) {
   const block = generateConfigBlock();
-  // Reemplaza desde "const _p =" hasta el cierre de "const comisiones = [...];"
-  const re = /const _p\s*=[\s\S]*?const comisiones\s*=\s*\[[\s\S]*?\];/;
-  if (re.test(originalSrc)) return originalSrc.replace(re, block);
-  // Fallback: si el archivo no tiene la estructura esperada, antepone el bloque
+  
+  // Ahora reemplaza desde "_p =" hasta el final del array "origenes"
+  const re = /const _p\s*=[\s\S]*?const origenes\s*=\s*\[[\s\S]*?\];/;
+  
+  if (re.test(originalSrc)) {
+    return originalSrc.replace(re, block);
+  } else {
+    // Fallback por si lee el archivo viejo que todavía no tenía "const origenes"
+    const reFallback = /const _p\s*=[\s\S]*?const comisiones\s*=\s*\[[\s\S]*?\];(?:[\s\S]*?\/\/.*<\/option>)?/;
+    if (reFallback.test(originalSrc)) return originalSrc.replace(reFallback, block);
+  }
   return block + '\n\n' + originalSrc;
 }
 

@@ -17,6 +17,12 @@ const comisiones = [
   { id: 'com9', num: '9', dia: 'Viernes', hora: '12:00 – 16:00 hs', cupo: 16 }
 ];
 
+const origenes = [
+  { valor: '4', label: 'Comisión 4 — Martes 7 a 11' },
+  { valor: '5', label: 'Comisión 5 — Martes 12 a 16' },
+  { valor: '8', label: 'Comisión 8 — Lunes 15:30 a 19:30' }
+];
+
 let inscripciones = [];
 let comisionSeleccionada = null;
 
@@ -54,6 +60,19 @@ function renderComisiones() {
     container.appendChild(card);
   });
 }
+// ---- Render orígenes ----
+function renderOrigenes() {
+  const select = document.getElementById('comision-original');
+  select.innerHTML = '<option value="">Seleccioná tu comisión actual</option>';
+  
+  origenes.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.valor;
+    opt.textContent = o.label;
+    select.appendChild(opt);
+  });
+}
+
 
 // ---- Seleccionar comisión ----
 function seleccionarComision(id) {
@@ -239,3 +258,4 @@ onSnapshot(collection(db, 'inscripciones'), snapshot => {
 });
 
 renderComisiones();
+renderOrigenes();
