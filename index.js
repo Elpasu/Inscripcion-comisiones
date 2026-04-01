@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
-const CUPO_MAX = 51;
+const CUPO_MAX = 48;
 
 const comisiones = [
   { id: 'com1', num: '1', dia: 'Jueves', hora: '7:00 – 11:00 hs' },
@@ -19,9 +19,7 @@ const comisiones = [
 
 const origenes = [
   { valor: '4', label: 'Comisión 4 — Martes 7 a 11' },
-<<<<<<< HEAD
-  { valor: '5', label: 'Comisión 5 — Martes 12 a 16' },
-  { valor: '8', label: 'Comisión 8 — Lunes 15:30 a 19:30' }
+  { valor: '5', label: 'Comisión 5 — Martes 12 a 16' }
 ];
 =======
   { valor: '5', label: 'Comisión 5 — Martes 12 a 16' }
