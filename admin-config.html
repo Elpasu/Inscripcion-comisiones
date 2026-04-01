@@ -75,31 +75,23 @@
     .cupo-global-row input { width: 80px; text-align: center; background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 4px; padding: 8px; font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--accent); outline: none; }
     .cupo-global-row input:focus { box-shadow: 0 0 0 2px rgba(232,212,77,0.15); }
 
-    /* COM LIST */
-    .com-list { display: flex; flex-direction: column; gap: 8px; }
-    .com-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; display: grid; grid-template-columns: 48px 1fr 1fr auto; gap: 10px; align-items: center; transition: border-color 0.15s; }
-    .com-item:hover { border-color: var(--border-lit); }
-    .com-num-input { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--accent); background: transparent; border: none; outline: none; width: 100%; padding: 2px 0; }
-    .com-num-input::placeholder { color: var(--text-hint); font-size: 14px; }
-    .com-field { display: flex; flex-direction: column; gap: 3px; }
-    .com-field-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-hint); }
-    .com-field input { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-family: var(--sans); font-size: 13px; color: var(--text); outline: none; width: 100%; transition: border-color 0.15s; }
-    .com-field input:focus { border-color: var(--accent); }
-    .cupo-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
-    .cupo-cell-row { display: flex; align-items: center; gap: 6px; }
-    .cupo-cell input[type=number] { width: 60px; text-align: center; background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 4px; padding: 5px; font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent); outline: none; }
+    /* LISTAS ESTATICAS */
+    .list-item-readonly {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px; transition: border-color 0.15s;
+    }
+    .list-item-readonly:hover { border-color: var(--border-lit); }
+    .list-item-readonly .info { font-size: 13px; color: var(--text); }
+    .list-item-readonly .info strong { color: var(--accent); font-family: var(--mono); margin-right: 6px; font-weight: 600; }
+    
+    .select-add { width: 100%; padding: 9px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--r); font-family: var(--sans); font-size: 13px; outline: none; transition: border-color 0.15s; }
+    .select-add:focus { border-color: var(--accent); }
+    
     .btn-remove { width: 28px; height: 28px; background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--text-hint); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.15s; flex-shrink: 0; }
     .btn-remove:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
-    .btn-add { margin-top: 10px; width: 100%; padding: 9px; background: none; border: 1px dashed var(--border-lit); border-radius: var(--r); color: var(--text-muted); font-family: var(--mono); font-size: 12px; cursor: pointer; letter-spacing: 0.05em; transition: all 0.15s; }
-    .btn-add:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ORIG LIST */
-    .orig-list { display: flex; flex-direction: column; gap: 8px; }
-    .orig-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 14px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; }
-    .orig-field { display: flex; flex-direction: column; gap: 3px; }
-    .orig-field-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-hint); }
-    .orig-field input { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; font-family: var(--sans); font-size: 13px; color: var(--text); outline: none; width: 100%; transition: border-color 0.15s; }
-    .orig-field input:focus { border-color: var(--accent); }
+    .btn-admin { padding: 9px 16px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+    .btn-admin:hover { opacity: 0.85; }
 
     .section-sep { height: 1px; background: var(--border); margin: 1.75rem 0; }
 
@@ -168,20 +160,18 @@
     <div class="auth-field">
       <label>GitHub Token</label>
       <input type="password" id="auth-token" placeholder="ghp_... o github_pat_..."
-        onkeydown="if(event.key==='Enter') document.getElementById('auth-owner').focus()">
+        onkeydown="if(event.key==='Enter') login()">
       <small>Classic token con scope <strong>repo</strong>, o Fine-grained con <strong>Contents: R/W</strong></small>
     </div>
 
-    <div class="auth-repo-row">
+    <div class="auth-repo-row" style="display: none;">
       <div class="auth-field">
         <label>Usuario / Org</label>
-        <input type="text" id="auth-owner" placeholder="tu-usuario"
-          onkeydown="if(event.key==='Enter') document.getElementById('auth-repo').focus()">
+        <input type="text" id="auth-owner" value="Elpasu" placeholder="tu-usuario">
       </div>
       <div class="auth-field">
         <label>Nombre del repo</label>
-        <input type="text" id="auth-repo" placeholder="nombre-del-repo"
-          onkeydown="if(event.key==='Enter') login()">
+        <input type="text" id="auth-repo" value="Inscripcion-comisiones" placeholder="nombre-del-repo">
       </div>
     </div>
 
@@ -209,15 +199,18 @@
       <div class="cupo-global-row">
         <div>
           <label>Cupo máximo por comisión</label>
-          <small>Se aplica a todas las comisiones por igual.</small>
+          <small>Se aplica a todas las activas por igual.</small>
         </div>
-        <input type="number" id="cupo-global" value="12" min="1" max="999"
+        <input type="number" id="cupo-global" value="15" min="1" max="999"
           oninput="renderPreview(); scheduleAutoGenerate();">
       </div>
 
       <div class="panel-title">Comisiones disponibles (destino)</div>
-      <div class="com-list" id="com-list"></div>
-      <button class="btn-add" onclick="addComision()">+ Agregar comisión</button>
+      <div id="com-list"></div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <select id="sel-add-com" class="select-add" style="margin-bottom:0; flex:1;"></select>
+        <button class="btn-admin" style="padding: 0 16px;" onclick="addCom()">Agregar</button>
+      </div>
 
       <div class="section-sep"></div>
 
@@ -225,8 +218,11 @@
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
         Opciones del desplegable que ven los alumnos.
       </p>
-      <div class="orig-list" id="orig-list"></div>
-      <button class="btn-add" onclick="addOrigen()">+ Agregar origen</button>
+      <div id="orig-list"></div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <select id="sel-add-orig" class="select-add" style="margin-bottom:0; flex:1;"></select>
+        <button class="btn-admin" style="padding: 0 16px;" onclick="addOrig()">Agregar</button>
+      </div>
 
     </div>
 
@@ -276,7 +272,7 @@ function login() {
 
   if (pass !== ADMIN_PASS) { err.textContent = 'Contraseña incorrecta.'; return; }
   if (!token)              { err.textContent = 'Ingresá el GitHub Token.'; return; }
-  if (!owner || !repo)     { err.textContent = 'Completá usuario y nombre del repo.'; return; }
+  if (!owner || !repo)     { err.textContent = 'Falta usuario o repo por defecto.'; return; }
 
   GH_TOKEN = token; GH_OWNER = owner; GH_REPO = repo;
 
@@ -288,34 +284,40 @@ function login() {
   init();
 }
 
-// ── State ──────────────────────────────────────────────────────────────────
-// CAMBIO: Se eliminó la propiedad ", cupo: 12" de cada objeto del array inicial.
-let comisiones = [
-  { id:'com1',  num:'1',  dia:'Jueves',    hora:'7:00 – 11:00 hs' },
-  { id:'com2',  num:'2',  dia:'Viernes',   hora:'7:00 – 11:00 hs' },
-  { id:'com3',  num:'3',  dia:'Miércoles', hora:'7:00 – 11:00 hs' },
-  { id:'com5a', num:'5A', dia:'Jueves',    hora:'16:00 – 20:00 hs' },
-  { id:'com6',  num:'6',  dia:'Miércoles', hora:'11:30 – 15:30 hs' },
-  { id:'com7',  num:'7',  dia:'Jueves',    hora:'12:00 – 16:00 hs' },
-  { id:'com9',  num:'9',  dia:'Viernes',   hora:'12:00 – 16:00 hs' },
+// ── Master Data Estanca ────────────────────────────────────────────────────
+const TODAS_COMISIONES = [
+  { id:'com1',  num:'1',  dia:'Jueves',    hora:'16:00 a 20:00 hs', val:'1' },
+  { id:'com2',  num:'2',  dia:'Viernes',   hora:'07:00 a 11:00 hs', val:'2' },
+  { id:'com3',  num:'3',  dia:'Miércoles', hora:'07:00 a 11:00 hs', val:'3' },
+  { id:'com4',  num:'4',  dia:'Martes',    hora:'07:00 a 11:00 hs', val:'4' },
+  { id:'com5',  num:'5',  dia:'Martes',    hora:'12:00 a 16:00 hs', val:'5' },
+  { id:'com5a', num:'5A', dia:'Jueves',    hora:'16:00 a 20:00 hs', val:'5A' },
+  { id:'com6',  num:'6',  dia:'Miércoles', hora:'11:30 a 15:30 hs', val:'6' },
+  { id:'com7',  num:'7',  dia:'Jueves',    hora:'12:00 a 16:00 hs', val:'7' },
+  { id:'com8',  num:'8',  dia:'Lunes',     hora:'15:30 a 19:30 hs', val:'8' },
+  { id:'com9',  num:'9',  dia:'Viernes',   hora:'12:00 a 16:00 hs', val:'9' }
 ];
-let origenes = [
-  { id:'o1', valor:'4', label:'Comisión 4 — Martes 7 a 11'       },
-  { id:'o2', valor:'5', label:'Comisión 5 — Martes 12 a 16'      },
-  { id:'o3', valor:'8', label:'Comisión 8 — Lunes 15:30 a 19:30' },
-];
-let idCounter = 100;
-const uid = () => 'c' + (++idCounter);
-let currentFileSha  = null;
-let liveComisiones  = null;
 
-// ── Init: carga el index.js real para SHA y diff ───────────────────────────
+let comisionesActivas = []; // Guarda los IDs seleccionados
+let origenesActivos = [];   // Guarda los IDs seleccionados
+
+let currentFileSha  = null;
+let liveComisionesActivas  = []; // Para comparar los cambios
+
+// ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
-  renderComList();
-  renderOrigList();
-  renderPreview();
+  populateSelects();
+  renderLists();
   generateAndShow();
   await fetchCurrentFile();
+}
+
+function populateSelects() {
+  const opts = TODAS_COMISIONES.map(c => 
+    `<option value="${c.id}">Comisión ${c.num} — ${c.dia} ${c.hora}</option>`
+  ).join('');
+  document.getElementById('sel-add-com').innerHTML = opts;
+  document.getElementById('sel-add-orig').innerHTML = opts;
 }
 
 async function fetchCurrentFile() {
@@ -331,7 +333,7 @@ async function fetchCurrentFile() {
   } catch (_) { /* diff opcional */ }
 }
 
-// Lee el index.js actual y precarga los valores en el panel
+// Lee el archivo actual y tilda las comisiones que están activas
 function parseAndSyncFromSource(src) {
   try {
     const cupoMatch = src.match(/const CUPO_MAX\s*=\s*(\d+)/);
@@ -339,46 +341,46 @@ function parseAndSyncFromSource(src) {
 
     const comMatch = src.match(/const comisiones\s*=\s*\[([\s\S]*?)\];/);
     if (comMatch) {
-      const items = [];
-      const re = /\{[^}]+\}/g; let m;
-      while ((m = re.exec(comMatch[1])) !== null) {
-        const obj = {};
-        for (const [,k,v] of m[0].matchAll(/(\w+):\s*'([^']*)'/g)) obj[k] = v;
-        if (obj.id) items.push(obj);
-      }
-      if (items.length) { comisiones = items; liveComisiones = JSON.parse(JSON.stringify(items)); renderComList(); }
+      const ids = [];
+      const re = /id:\s*'([^']+)'/g; let m;
+      while ((m = re.exec(comMatch[1])) !== null) ids.push(m[1]);
+      comisionesActivas = ids;
+      liveComisionesActivas = [...ids];
     }
 
-    // AHORA LEE EL ARRAY origenes DESDE EL JAVASCRIPT
     const origMatch = src.match(/const origenes\s*=\s*\[([\s\S]*?)\];/);
     if (origMatch) {
-      const opts = [];
-      const re = /\{[^}]+\}/g; let m;
+      const ids = [];
+      const re = /valor:\s*'([^']+)'/g; let m;
       while ((m = re.exec(origMatch[1])) !== null) {
-        const obj = {};
-        for (const [,k,v] of m[0].matchAll(/(\w+):\s*'([^']*)'/g)) obj[k] = v;
-        if (obj.valor && obj.label) opts.push({ id: uid(), valor: obj.valor, label: obj.label });
+        const c = TODAS_COMISIONES.find(x => x.val === m[1]);
+        if(c) ids.push(c.id);
       }
-      if (opts.length) { origenes = opts; renderOrigList(); }
+      origenesActivos = ids;
     }
+    renderLists();
   } catch (_) {}
 }
 
 // ── Diff ───────────────────────────────────────────────────────────────────
 function updateDiff() {
-  if (!liveComisiones) return;
+  if (!liveComisionesActivas) return;
   const changes = [];
-  comisiones.forEach(c => {
-    const live = liveComisiones.find(l => l.id === c.id);
-    if (!live) changes.push({ type:'added',   text:`+ Comisión ${c.num} (${c.dia})` });
-    // CAMBIO: Se eliminó "||String(live.cupo)!==String(c.cupo)" de esta comprobación
-    else if (live.num!==c.num||live.dia!==c.dia||live.hora!==c.hora)
-      changes.push({ type:'changed', text:`~ Comisión ${c.num}: modificada` });
+  
+  comisionesActivas.forEach(id => {
+    if (!liveComisionesActivas.includes(id)) {
+      const c = TODAS_COMISIONES.find(x=>x.id===id);
+      changes.push({ type:'added', text:`+ Comisión ${c.num} activada (Destino)` });
+    }
   });
-  liveComisiones.forEach(l => {
-    if (!comisiones.find(c => c.id===l.id))
-      changes.push({ type:'removed', text:`− Comisión ${l.num} eliminada` });
+  
+  liveComisionesActivas.forEach(id => {
+    if (!comisionesActivas.includes(id)) {
+      const c = TODAS_COMISIONES.find(x=>x.id===id);
+      changes.push({ type:'removed', text:`− Comisión ${c.num} quitada (Destino)` });
+    }
   });
+
   const box = document.getElementById('diff-box');
   if (!changes.length) { box.classList.remove('visible'); return; }
   box.classList.add('visible');
@@ -387,91 +389,67 @@ function updateDiff() {
   ).join('');
 }
 
-// ── Render comisiones destino ──────────────────────────────────────────────
-function renderComList() {
-  const list = document.getElementById('com-list');
-  list.innerHTML = '';
-  comisiones.forEach((com, idx) => {
-    const item = document.createElement('div');
-    item.className = 'com-item';
-    item.innerHTML = `
-      <div>
-        <div class="com-field-label">Nº</div>
-        <input class="com-num-input" value="${esc(com.num)}" placeholder="1"
-          oninput="updateCom(${idx},'num',this.value)" maxlength="4">
-      </div>
-      <div class="com-field">
-        <div class="com-field-label">Día</div>
-        <input value="${esc(com.dia)}" placeholder="Jueves"
-          oninput="updateCom(${idx},'dia',this.value)">
-      </div>
-      <div class="com-field">
-        <div class="com-field-label">Horario</div>
-        <input value="${esc(com.hora)}" placeholder="7:00 – 11:00 hs"
-          oninput="updateCom(${idx},'hora',this.value)">
-      </div>
-      <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
-        <button class="btn-remove" onclick="removeCom(${idx})" title="Eliminar comisión">×</button>
+// ── Render Arrays ──────────────────────────────────────────────────────────
+function renderLists() {
+  const cList = document.getElementById('com-list');
+  cList.innerHTML = comisionesActivas.map(id => {
+    const c = TODAS_COMISIONES.find(x => x.id === id);
+    return `
+      <div class="list-item-readonly">
+        <div class="info"><strong>Com. ${c.num}</strong> ${c.dia} ${c.hora}</div>
+        <button class="btn-remove" onclick="removeCom('${c.id}')">×</button>
       </div>`;
-    list.appendChild(item);
-  });
+  }).join('');
+
+  const oList = document.getElementById('orig-list');
+  oList.innerHTML = origenesActivos.map(id => {
+    const c = TODAS_COMISIONES.find(x => x.id === id);
+    return `
+      <div class="list-item-readonly">
+        <div class="info"><strong>Com. ${c.num}</strong> ${c.dia} ${c.hora}</div>
+        <button class="btn-remove" onclick="removeOrig('${c.id}')">×</button>
+      </div>`;
+  }).join('');
+
   renderPreview();
+  scheduleAutoGenerate();
 }
 
-function updateCom(idx, field, value) { comisiones[idx][field]=value; renderPreview(); scheduleAutoGenerate(); }
-function removeCom(idx)               { comisiones.splice(idx,1); renderComList(); scheduleAutoGenerate(); }
-function addComision() {
-  // CAMBIO: Se eliminó ", cupo: parseInt(...)" del push.
-  comisiones.push({ id:uid(), num:'', dia:'', hora:'' });
-  renderComList();
-  setTimeout(() => { const inp = document.querySelectorAll('.com-num-input'); if(inp.length) inp[inp.length-1].focus(); }, 50);
+function addCom() {
+  const val = document.getElementById('sel-add-com').value;
+  if(!comisionesActivas.includes(val)) comisionesActivas.push(val);
+  renderLists();
+}
+function removeCom(id) {
+  comisionesActivas = comisionesActivas.filter(x => x !== id);
+  renderLists();
 }
 
-// CAMBIO: Se eliminó la función completa "syncCuposGlobal(val)" porque ya no es necesaria.
-
-// ── Render orígenes ────────────────────────────────────────────────────────
-function renderOrigList() {
-  const list = document.getElementById('orig-list');
-  list.innerHTML = '';
-  origenes.forEach((o, idx) => {
-    const item = document.createElement('div');
-    item.className = 'orig-item';
-    item.innerHTML = `
-      <div class="orig-field">
-        <div class="orig-field-label">Valor (ID)</div>
-        <input value="${esc(o.valor)}" placeholder="Ej: 4" oninput="updateOrig(${idx},'valor',this.value)">
-      </div>
-      <div class="orig-field">
-        <div class="orig-field-label">Etiqueta visible</div>
-        <input value="${esc(o.label)}" placeholder="Comisión 4 — Martes 7 a 11" oninput="updateOrig(${idx},'label',this.value)">
-      </div>
-      <button class="btn-remove" onclick="removeOrig(${idx})">×</button>`;
-    list.appendChild(item);
-  });
+function addOrig() {
+  const val = document.getElementById('sel-add-orig').value;
+  if(!origenesActivos.includes(val)) origenesActivos.push(val);
+  renderLists();
 }
-function updateOrig(idx, field, value) { origenes[idx][field]=value; scheduleAutoGenerate(); }
-function removeOrig(idx)               { origenes.splice(idx,1); renderOrigList(); scheduleAutoGenerate(); }
-function addOrigen() {
-  origenes.push({ id:uid(), valor:'', label:'' });
-  renderOrigList();
-  setTimeout(() => { const inp = document.querySelectorAll('.orig-field input'); if(inp.length) inp[inp.length-2].focus(); }, 50);
+function removeOrig(id) {
+  origenesActivos = origenesActivos.filter(x => x !== id);
+  renderLists();
 }
 
 // ── Preview ────────────────────────────────────────────────────────────────
 function renderPreview() {
   const grid = document.getElementById('preview-grid');
-  // CAMBIO: La preview ahora va a buscar siempre el número global
-  const cupoGlobal = parseInt(document.getElementById('cupo-global').value) || 12;
+  const cupoGlobal = parseInt(document.getElementById('cupo-global').value) || 15;
   
   grid.innerHTML = '';
-  comisiones.forEach(com => {
+  comisionesActivas.forEach(id => {
+    const com = TODAS_COMISIONES.find(x => x.id === id);
     const card = document.createElement('div');
     card.className = 'preview-card';
     card.innerHTML = `
-      <div class="preview-card-num">${esc(com.num)||'?'}</div>
-      <div class="preview-card-day">${esc(com.dia)||'—'}</div>
-      <div class="preview-card-hour">${esc(com.hora)||'—'}</div>
-      <span class="preview-cupo">0 / ${cupoGlobal}</span>`; // Usa cupoGlobal
+      <div class="preview-card-num">${esc(com.num)}</div>
+      <div class="preview-card-day">${esc(com.dia)}</div>
+      <div class="preview-card-hour">${esc(com.hora)}</div>
+      <span class="preview-cupo">0 / ${cupoGlobal}</span>`;
     grid.appendChild(card);
   });
 }
@@ -489,15 +467,18 @@ function generateAndShow() {
   updateDiff();
 }
 
-// Genera solo el bloque de configuración (para mostrar en pantalla / copiar)
 function generateConfigBlock() {
-  const cupoMax = parseInt(document.getElementById('cupo-global').value)||12;
-  const comsLines = comisiones.map(c =>
-    `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}' }`
-  ).join(',\n');
-  const origLines = origenes.map(o =>
-    `  { valor: '${q(o.valor)}', label: '${q(o.label)}' }`
-  ).join(',\n');
+  const cupoMax = parseInt(document.getElementById('cupo-global').value)||15;
+  
+  const comsLines = comisionesActivas.map(id => {
+    const c = TODAS_COMISIONES.find(x => x.id === id);
+    return `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}' }`;
+  }).join(',\n');
+  
+  const origLines = origenesActivos.map(id => {
+    const c = TODAS_COMISIONES.find(x => x.id === id);
+    return `  { valor: '${q(c.val)}', label: 'Comisión ${q(c.num)} — ${q(c.dia)} ${q(c.hora)}' }`;
+  }).join(',\n');
   
   return `const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = ${cupoMax};
@@ -511,17 +492,13 @@ ${origLines}
 ];`;
 }
 
-// Genera el index.js COMPLETO reemplazando el bloque de config en el fuente original
 function generateFullIndexJs(originalSrc) {
   const block = generateConfigBlock();
-  
-  // Ahora reemplaza desde "_p =" hasta el final del array "origenes"
   const re = /const _p\s*=[\s\S]*?const origenes\s*=\s*\[[\s\S]*?\];/;
   
   if (re.test(originalSrc)) {
     return originalSrc.replace(re, block);
   } else {
-    // Fallback por si lee el archivo viejo que todavía no tenía "const origenes"
     const reFallback = /const _p\s*=[\s\S]*?const comisiones\s*=\s*\[[\s\S]*?\];(?:[\s\S]*?\/\/.*<\/option>)?/;
     if (reFallback.test(originalSrc)) return originalSrc.replace(reFallback, block);
   }
@@ -535,7 +512,7 @@ function renderCode(code) {
     .replace(/\b(const|let|var|function|return|import|export|from|async|await|new)\b/g,'<span class="kw">$1</span>')
     .replace(/'([^'\\]|\\.)*'/g,'<span class="str">$&</span>')
     .replace(/: (\d+)/g,': <span class="num">$1</span>')
-    .replace(/\b(id|num|dia|hora|cupo)\b(?=:)/g,'<span class="key">$1</span>');
+    .replace(/\b(id|num|dia|hora|cupo|valor|label)\b(?=:)/g,'<span class="key">$1</span>');
   document.getElementById('code-output').innerHTML = hl;
 }
 
@@ -571,7 +548,6 @@ async function publishToGitHub() {
   status.className = 'publish-status';
 
   try {
-    // 1. Obtener archivo actual (SHA + contenido)
     const getRes = await ghFetch('GET',
       `/repos/${GH_OWNER}/${GH_REPO}/contents/${INDEX_JS_PATH}?ref=${BRANCH}`);
     if (!getRes.ok) {
@@ -582,10 +558,8 @@ async function publishToGitHub() {
     currentFileSha = fileData.sha;
     const originalSrc = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g,''))));
 
-    // 2. Construir nuevo contenido
     const newSrc = generateFullIndexJs(originalSrc);
 
-    // 3. ¿Hay cambios reales?
     if (newSrc === originalSrc) {
       setBtnState('idle', '↑ Publicar en GitHub');
       status.className = 'publish-status warn';
@@ -595,7 +569,6 @@ async function publishToGitHub() {
 
     setBtnState('loading', 'Publicando…');
 
-    // 4. Commit via Contents API
     const encoded = btoa(unescape(encodeURIComponent(newSrc)));
     const now = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
 
@@ -619,7 +592,7 @@ async function publishToGitHub() {
       `GitHub Pages se actualizará en ~1 min.<br>` +
       `<a href="${commitUrl}" target="_blank" style="margin-top:4px;display:inline-block;">Ver commit en GitHub →</a>`;
 
-    liveComisiones = JSON.parse(JSON.stringify(comisiones));
+    liveComisionesActivas = [...comisionesActivas];
     updateDiff();
     setTimeout(() => setBtnState('idle', '↑ Publicar en GitHub'), 4000);
 
