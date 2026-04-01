@@ -147,7 +147,7 @@ window.submitInscripcion = async function() {
   const comConfirmada = comisiones.find(c => c.id === comisionSeleccionada);
 
   try {
-    await addDoc(collection(db, 'DB_COLLECTION'), {
+    await addDoc(collection(db, DB_COLLECTION), {
       nombre,
       legajo,
       comisionOriginal,
@@ -248,7 +248,7 @@ window.descargarExcel = function() {
 };
 
 // ---- Firestore en tiempo real ----
-onSnapshot(collection(db, 'DB_COLLECTION'), snapshot => {
+onSnapshot(collection(db, DB_COLLECTION), snapshot => {
   inscripciones = snapshot.docs.map(doc => doc.data());
   renderComisiones();
   if (document.getElementById('tabla-inscripciones').style.display !== 'none') {
