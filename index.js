@@ -8,7 +8,6 @@ const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = 48;
 
 const comisiones = [
-  { id: 'com1', num: '1', dia: 'Jueves', hora: '7:00 – 11:00 hs' },
   { id: 'com2', num: '2', dia: 'Viernes', hora: '7:00 – 11:00 hs' },
   { id: 'com3', num: '3', dia: 'Miércoles', hora: '7:00 – 11:00 hs' },
   { id: 'com5a', num: '5A', dia: 'Jueves', hora: '16:00 – 20:00 hs' },
@@ -18,7 +17,6 @@ const comisiones = [
 ];
 
 const origenes = [
-  { valor: '4', label: 'Comisión 4 — Martes 7 a 11' },
   { valor: '5', label: 'Comisión 5 — Martes 12 a 16' },
   { valor: '8', label: 'Comisión 8 — Lunes 15:30 a 19:30' }
 ];
