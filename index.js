@@ -5,17 +5,23 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
-const CUPO_MAX = 12;
+const CUPO_MAX = 15;
 
 const comisiones = [
-  { id: 'com1', num: '1', dia: 'Jueves', hora: '7:00 – 11:00 hs', cupo: 2 },
-  { id: 'com2', num: '2', dia: 'Viernes', hora: '7:00 – 11:00 hs', cupo: 2 },
-  { id: 'com3', num: '3', dia: 'Miércoles', hora: '7:00 – 11:00 hs', cupo: 6 },
-  { id: 'com5a', num: '5A', dia: 'Jueves', hora: '16:00 – 20:00 hs', cupo: 4 },
-  { id: 'com6', num: '6', dia: 'Miércoles', hora: '11:30 – 15:30 hs', cupo: 6 },
-  { id: 'com7', num: '7', dia: 'Jueves', hora: '12:00 – 16:00 hs', cupo: 7 },
-  { id: 'com9', num: '9', dia: 'Viernes', hora: '12:00 – 16:00 hs', cupo: 16 }
+  { id: 'com1', num: '1', dia: 'Jueves', hora: '7:00 – 11:00 hs' },
+  { id: 'com2', num: '2', dia: 'Viernes', hora: '7:00 – 11:00 hs' },
+  { id: 'com3', num: '3', dia: 'Miércoles', hora: '7:00 – 11:00 hs' },
+  { id: 'com5a', num: '5A', dia: 'Jueves', hora: '16:00 – 20:00 hs' },
+  { id: 'com6', num: '6', dia: 'Miércoles', hora: '11:30 – 15:30 hs' },
+  { id: 'com7', num: '7', dia: 'Jueves', hora: '12:00 – 16:00 hs' },
+  { id: 'com9', num: '9', dia: 'Viernes', hora: '12:00 – 16:00 hs' }
 ];
+
+// ── OPCIONES COMISIÓN ORIGEN (pegar en index.html → <select id="comision-original">) ──
+// <option value="">Seleccioná tu comisión actual</option>
+// <option value="4">Comisión 4 — Martes 7 a 11</option>
+// <option value="5">Comisión 5 — Martes 12 a 16</option>
+// <option value="8">Comisión 8 — Lunes 15:30 a 19:30</option>
 
 let inscripciones = [];
 let comisionSeleccionada = null;
