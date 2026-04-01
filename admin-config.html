@@ -128,6 +128,16 @@
     .diff-dot.removed { background: var(--danger); }
     .diff-dot.changed { background: var(--warn); }
 
+    /* DB RESET ALERT */
+    .db-reset-box {
+      margin-top: 1rem; padding: 12px 14px; background: var(--danger-dim); 
+      border: 1px solid var(--danger); border-radius: var(--r); 
+      display: flex; align-items: center; gap: 10px;
+    }
+    .db-reset-box input { width: 16px; height: 16px; accent-color: var(--danger); cursor: pointer; }
+    .db-reset-box label { font-size: 13px; color: #ff8a80; cursor: pointer; user-select: none; line-height: 1.4; }
+    .db-reset-box label strong { color: var(--danger); }
+
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
       .panel { border-right: none; border-bottom: 1px solid var(--border); }
@@ -248,6 +258,13 @@
         <div id="diff-items"></div>
       </div>
 
+      <div class="db-reset-box">
+        <input type="checkbox" id="reset-db" onchange="scheduleAutoGenerate()">
+        <label for="reset-db">
+          <strong>Nueva lista</strong> Reiniciar inscriptos a cero (Crea una nueva base de datos limpia en Firebase).
+        </label>
+      </div>
+
       <div class="publish-status" id="publish-status"></div>
 
     </div>
@@ -298,11 +315,14 @@ const TODAS_COMISIONES = [
   { id:'com9',  num:'9',  dia:'Viernes',   hora:'12:00 a 16:00 hs', val:'9' }
 ];
 
-let comisionesActivas = []; // Guarda los IDs seleccionados
-let origenesActivos = [];   // Guarda los IDs seleccionados
+let comisionesActivas = []; 
+let origenesActivos = [];   
 
 let currentFileSha  = null;
-let liveComisionesActivas  = []; // Para comparar los cambios
+let liveComisionesActivas  = []; 
+
+// Control de base de datos
+let currentDbCollection = 'inscripciones';
 
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
@@ -333,11 +353,14 @@ async function fetchCurrentFile() {
   } catch (_) { /* diff opcional */ }
 }
 
-// Lee el archivo actual y tilda las comisiones que están activas
 function parseAndSyncFromSource(src) {
   try {
     const cupoMatch = src.match(/const CUPO_MAX\s*=\s*(\d+)/);
     if (cupoMatch) document.getElementById('cupo-global').value = cupoMatch[1];
+
+    // Lee el nombre de la DB actual
+    const dbMatch = src.match(/const DB_COLLECTION\s*=\s*'([^']+)'/);
+    if (dbMatch) currentDbCollection = dbMatch[1];
 
     const comMatch = src.match(/const comisiones\s*=\s*\[([\s\S]*?)\];/);
     if (comMatch) {
@@ -380,6 +403,11 @@ function updateDiff() {
       changes.push({ type:'removed', text:`− Comisión ${c.num} quitada (Destino)` });
     }
   });
+
+  const resetCb = document.getElementById('reset-db');
+  if (resetCb && resetCb.checked) {
+      changes.push({ type:'changed', text:`⚠️ ¡ATENCIÓN! Se reiniciará la base de inscriptos a cero.` });
+  }
 
   const box = document.getElementById('diff-box');
   if (!changes.length) { box.classList.remove('visible'); return; }
@@ -470,6 +498,16 @@ function generateAndShow() {
 function generateConfigBlock() {
   const cupoMax = parseInt(document.getElementById('cupo-global').value)||15;
   
+  // Logica de Reseteo DB
+  let collectionName = currentDbCollection || 'inscripciones';
+  const resetCb = document.getElementById('reset-db');
+  if (resetCb && resetCb.checked) {
+    if (!window.tempCollectionName) window.tempCollectionName = 'inscripciones_' + Date.now();
+    collectionName = window.tempCollectionName;
+  } else {
+    window.tempCollectionName = null;
+  }
+
   const comsLines = comisionesActivas.map(id => {
     const c = TODAS_COMISIONES.find(x => x.id === id);
     return `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}' }`;
@@ -482,6 +520,7 @@ function generateConfigBlock() {
   
   return `const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = ${cupoMax};
+const DB_COLLECTION = '${collectionName}';
 
 const comisiones = [
 ${comsLines}
@@ -542,6 +581,7 @@ async function publishToGitHub() {
   const btn    = document.getElementById('btn-publish');
   const label  = document.getElementById('btn-publish-label');
   const status = document.getElementById('publish-status');
+  const resetCb = document.getElementById('reset-db');
   const setBtnState = (state, text) => { btn.className = `btn-publish ${state}`; label.textContent = text; };
 
   setBtnState('loading', 'Leyendo archivo…');
@@ -593,6 +633,14 @@ async function publishToGitHub() {
       `<a href="${commitUrl}" target="_blank" style="margin-top:4px;display:inline-block;">Ver commit en GitHub →</a>`;
 
     liveComisionesActivas = [...comisionesActivas];
+    
+    // Si se aplicó un reinicio, actualizamos la variable global y destildamos el checkbox
+    if (resetCb && resetCb.checked) {
+      currentDbCollection = window.tempCollectionName;
+      resetCb.checked = false;
+      window.tempCollectionName = null;
+    }
+    
     updateDiff();
     setTimeout(() => setBtnState('idle', '↑ Publicar en GitHub'), 4000);
 

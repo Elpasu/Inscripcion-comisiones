@@ -6,6 +6,7 @@ import {
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = 48;
+const DB_COLLECTION = 'inscripciones';
 
 const comisiones = [
   { id: 'com2', num: '2', dia: 'Viernes', hora: '7:00 – 11:00 hs' },
@@ -146,7 +147,7 @@ window.submitInscripcion = async function() {
   const comConfirmada = comisiones.find(c => c.id === comisionSeleccionada);
 
   try {
-    await addDoc(collection(db, 'inscripciones'), {
+    await addDoc(collection(db, 'DB_COLLECTION'), {
       nombre,
       legajo,
       comisionOriginal,
@@ -247,7 +248,7 @@ window.descargarExcel = function() {
 };
 
 // ---- Firestore en tiempo real ----
-onSnapshot(collection(db, 'inscripciones'), snapshot => {
+onSnapshot(collection(db, 'DB_COLLECTION'), snapshot => {
   inscripciones = snapshot.docs.map(doc => doc.data());
   renderComisiones();
   if (document.getElementById('tabla-inscripciones').style.display !== 'none') {
