@@ -19,15 +19,9 @@ const comisiones = [
 
 const origenes = [
   { valor: '4', label: 'Comisión 4 — Martes 7 a 11' },
-  { valor: '5', label: 'Comisión 5 — Martes 12 a 16' }
+  { valor: '5', label: 'Comisión 5 — Martes 12 a 16' },
+  { valor: '8', label: 'Comisión 8 — Lunes 15:30 a 19:30' }
 ];
-=======
-  { valor: '5', label: 'Comisión 5 — Martes 12 a 16' }
-];
-// <option value="4">Comisión 4 — Martes 7 a 11</option>
-// <option value="5">Comisión 5 — Martes 12 a 16</option>
-// <option value="8">Comisión 8 — Lunes 15:30 a 19:30</option>
->>>>>>> 400511a5966d9eab09bb903d23fcf3093e13d280
 
 let inscripciones = [];
 let comisionSeleccionada = null;
