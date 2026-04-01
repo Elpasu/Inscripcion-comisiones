@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Configurador de Comisiones</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --border-lit: #3a3a3a;
+      --text: #e8e6e0;
+      --text-muted: #888;
+      --text-hint: #555;
+      --accent: #e8d44d;
+      --accent-dim: #3a340e;
+      --accent-text: #1a1700;
+      --danger: #e85d4d;
+      --danger-dim: #2d1410;
+      --success: #4de884;
+      --success-dim: #0e2d1a;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+      --r: 6px;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- AUTH SCREEN ---- */
+    #auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+    .auth-box {
+      width: 340px;
+      border: 1px solid var(--border-lit);
+      border-radius: 10px;
+      padding: 2.5rem 2rem;
+      background: var(--surface);
+    }
+    .auth-logo {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .auth-box h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .auth-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    .auth-field label {
+      display: block;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .auth-field input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border-lit);
+      border-radius: var(--r);
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .auth-field input:focus { border-color: var(--accent); }
+    .auth-err {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 8px;
+      min-height: 16px;
+      font-family: var(--mono);
+    }
+    .btn-auth {
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 11px;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: var(--r);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.15s;
+    }
+    .btn-auth:hover { opacity: 0.85; }
+
+    /* ---- MAIN LAYOUT ---- */
+    #app { display: none; min-height: 100vh; }
+
+    .topbar {
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .topbar-spacer { flex: 1; }
+    .topbar-save-status {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-hint);
+      letter-spacing: 0.05em;
+    }
+    .btn-generate {
+      padding: 7px 18px;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: var(--r);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.15s;
+    }
+    .btn-generate:hover { opacity: 0.85; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 52px);
+    }
+
+    .panel {
+      padding: 2rem 1.75rem;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+    }
+    .panel:last-child { border-right: none; }
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ---- COMISION CARDS (disponibles) ---- */
+    .com-list { display: flex; flex-direction: column; gap: 8px; }
+    .com-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 48px 1fr 1fr auto;
+      gap: 10px;
+      align-items: center;
+      transition: border-color 0.15s;
+    }
+    .com-item:hover { border-color: var(--border-lit); }
+    .com-num-input {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent);
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      padding: 2px 0;
+    }
+    .com-num-input::placeholder { color: var(--text-hint); font-size: 14px; }
+    .com-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .com-field-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-hint);
+    }
+    .com-field input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .com-field input:focus { border-color: var(--accent); }
+    .cupo-input {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .cupo-input input {
+      width: 60px;
+      text-align: center;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 5px;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      outline: none;
+    }
+    .cupo-input input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,212,77,0.15); }
+    .btn-remove {
+      width: 28px; height: 28px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-hint);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-remove:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
+
+    .btn-add {
+      margin-top: 10px;
+      width: 100%;
+      padding: 9px;
+      background: none;
+      border: 1px dashed var(--border-lit);
+      border-radius: var(--r);
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ---- COMISIONES ORIGEN ---- */
+    .orig-list { display: flex; flex-direction: column; gap: 8px; }
+    .orig-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .orig-field input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .orig-field input:focus { border-color: var(--accent); }
+    .orig-field-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-hint);
+      margin-bottom: 3px;
+    }
+
+    /* ---- CUPO GLOBAL ---- */
+    .cupo-global-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      margin-bottom: 1.5rem;
+    }
+    .cupo-global-row label {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
+    }
+    .cupo-global-row small {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+    .cupo-global-row input {
+      width: 80px;
+      text-align: center;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 8px;
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+      outline: none;
+    }
+    .cupo-global-row input:focus { box-shadow: 0 0 0 2px rgba(232,212,77,0.15); }
+
+    /* ---- OUTPUT ---- */
+    .output-wrap {
+      position: relative;
+    }
+    .output-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-hint);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn-copy {
+      padding: 4px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border-lit);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-copy.copied { border-color: var(--success); color: var(--success); }
+    pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.25rem;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: #ccc;
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    pre .kw { color: #c792ea; }
+    pre .str { color: #c3e88d; }
+    pre .num { color: var(--accent); }
+    pre .key { color: #82aaff; }
+    pre .cm { color: var(--text-hint); }
+
+    .instructions {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--r);
+      padding: 1rem 1.25rem;
+      margin-top: 1.5rem;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+    .instructions strong { color: var(--text); font-weight: 600; }
+    .instructions ol { margin-left: 1.25rem; margin-top: 8px; }
+    .instructions li { margin-bottom: 4px; }
+    .instructions code {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: var(--surface);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--accent);
+    }
+
+    /* ---- PREVIEW ---- */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      margin-top: 1rem;
+    }
+    .preview-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px;
+    }
+    .preview-card-num {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .preview-card-day { font-size: 12px; font-weight: 500; margin-bottom: 1px; }
+    .preview-card-hour { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+    .preview-cupo {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-hint);
+      background: var(--accent-dim);
+      padding: 2px 7px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .section-sep {
+      height: 1px;
+      background: var(--border);
+      margin: 1.75rem 0;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .com-item { grid-template-columns: 44px 1fr 1fr auto; }
+    }
+    @media (max-width: 560px) {
+      .com-item { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+      .btn-remove { grid-column: 2; grid-row: 1; justify-self: end; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">FBIOyF · UNR</div>
+    <h1>Panel de administración</h1>
+    <p>Configurador de comisiones — Química Orgánica</p>
+    <div class="auth-field">
+      <label>Contraseña</label>
+      <input type="password" id="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()">
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <button class="btn-auth" onclick="login()">Ingresar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">Admin</div>
+    <div class="topbar-title">Configurador de Comisiones</div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-save-status" id="save-status"></div>
+    <button class="btn-generate" onclick="generateAndShow()">⟳ Generar código</button>
+  </div>
+
+  <div class="layout">
+
+    <!-- PANEL IZQ: CONFIGURACIÓN -->
+    <div class="panel">
+
+      <div class="panel-title">Cupo por defecto</div>
+
+      <div class="cupo-global-row">
+        <div>
+          <label>Cupos máximos por comisión</label>
+          <small>Se aplica a todas las comisiones nuevas (pueden sobreescribirse individualmente)</small>
+        </div>
+        <input type="number" id="cupo-global" value="12" min="1" max="200" oninput="syncCuposGlobal(this.value)">
+      </div>
+
+      <div class="panel-title">Comisiones disponibles (destino)</div>
+      <div class="com-list" id="com-list"></div>
+      <button class="btn-add" onclick="addComision()">+ Agregar comisión</button>
+
+      <div class="section-sep"></div>
+
+      <div class="panel-title">Comisiones de origen</div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Son las opciones que verán los alumnos en el desplegable "Comisión de origen".</p>
+      <div class="orig-list" id="orig-list"></div>
+      <button class="btn-add" onclick="addOrigen()">+ Agregar comisión origen</button>
+
+    </div>
+
+    <!-- PANEL DER: OUTPUT + PREVIEW -->
+    <div class="panel">
+
+      <div class="panel-title">Vista previa</div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">Así verán las comisiones los alumnos:</p>
+      <div class="preview-grid" id="preview-grid"></div>
+
+      <div class="section-sep"></div>
+
+      <div class="panel-title">Código generado — index.js</div>
+
+      <div class="output-wrap">
+        <div class="output-label">
+          <span>Fragmento listo para reemplazar en index.js</span>
+          <button class="btn-copy" id="btn-copy" onclick="copyCode()">Copiar</button>
+        </div>
+        <pre id="code-output">← Presioná "Generar código" para ver el resultado</pre>
+      </div>
+
+      <div class="instructions">
+        <strong>¿Cómo aplicar los cambios?</strong>
+        <ol>
+          <li>Presioná <strong>Generar código</strong> arriba a la derecha.</li>
+          <li>Copiá el fragmento generado.</li>
+          <li>Abrí <code>index.js</code> en tu editor.</li>
+          <li>Reemplazá el bloque que empieza con <code>const _p =</code> hasta el cierre de <code>const comisiones = [...]</code>.</li>
+          <li>Guardá y subí el archivo.</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- AUTH ----
+// Misma contraseña que el admin del index.js (atob("amVmZXNvcmdhbmljYQ=="))
+const ADMIN_PASS = atob("amVmZXNvcmdhbmljYQ==");
+
+function login() {
+  const val = document.getElementById('auth-input').value;
+  if (val === ADMIN_PASS) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  } else {
+    const err = document.getElementById('auth-err');
+    err.textContent = 'Contraseña incorrecta.';
+    document.getElementById('auth-input').focus();
+  }
+}
+
+// ---- STATE ----
+let comisiones = [
+  { id: 'com1',  num: '1',  dia: 'Jueves',     hora: '7:00 – 11:00 hs',    cupo: 12 },
+  { id: 'com2',  num: '2',  dia: 'Viernes',    hora: '7:00 – 11:00 hs',    cupo: 12 },
+  { id: 'com3',  num: '3',  dia: 'Miércoles',  hora: '7:00 – 11:00 hs',    cupo: 12 },
+  { id: 'com5a', num: '5A', dia: 'Jueves',     hora: '16:00 – 20:00 hs',   cupo: 12 },
+  { id: 'com6',  num: '6',  dia: 'Miércoles',  hora: '11:30 – 15:30 hs',   cupo: 12 },
+  { id: 'com7',  num: '7',  dia: 'Jueves',     hora: '12:00 – 16:00 hs',   cupo: 12 },
+  { id: 'com9',  num: '9',  dia: 'Viernes',    hora: '12:00 – 16:00 hs',   cupo: 12 },
+];
+
+let origenes = [
+  { id: 'o1', valor: '4', label: 'Comisión 4 — Martes 7 a 11' },
+  { id: 'o2', valor: '5', label: 'Comisión 5 — Martes 12 a 16' },
+  { id: 'o3', valor: '8', label: 'Comisión 8 — Lunes 15:30 a 19:30' },
+];
+
+let idCounter = 100;
+function uid() { return 'c' + (++idCounter); }
+
+function init() {
+  renderComList();
+  renderOrigList();
+  renderPreview();
+  generateAndShow();
+}
+
+// ---- RENDER COM LIST ----
+function renderComList() {
+  const list = document.getElementById('com-list');
+  list.innerHTML = '';
+  comisiones.forEach((com, idx) => {
+    const item = document.createElement('div');
+    item.className = 'com-item';
+    item.innerHTML = `
+      <div>
+        <div class="com-field-label">Nº</div>
+        <input class="com-num-input" value="${com.num}" placeholder="1" oninput="updateCom(${idx},'num',this.value)" maxlength="4">
+      </div>
+      <div class="com-field">
+        <div class="com-field-label">Día</div>
+        <input value="${com.dia}" placeholder="Ej: Jueves" oninput="updateCom(${idx},'dia',this.value)">
+      </div>
+      <div class="com-field">
+        <div class="com-field-label">Horario</div>
+        <input value="${com.hora}" placeholder="Ej: 7:00 – 11:00 hs" oninput="updateCom(${idx},'hora',this.value)">
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div class="com-field-label">Cupos</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" style="width:60px;text-align:center;background:var(--accent-dim);border:1px solid var(--accent);border-radius:4px;padding:5px;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent);outline:none;" 
+            value="${com.cupo}" min="1" max="999" oninput="updateCom(${idx},'cupo',parseInt(this.value)||1)">
+          <button class="btn-remove" onclick="removeCom(${idx})" title="Eliminar">×</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+  renderPreview();
+}
+
+function updateCom(idx, field, value) {
+  comisiones[idx][field] = value;
+  renderPreview();
+  scheduleAutoGenerate();
+}
+
+function removeCom(idx) {
+  comisiones.splice(idx, 1);
+  renderComList();
+  scheduleAutoGenerate();
+}
+
+function addComision() {
+  comisiones.push({
+    id: uid(),
+    num: '',
+    dia: '',
+    hora: '',
+    cupo: parseInt(document.getElementById('cupo-global').value) || 12
+  });
+  renderComList();
+  // focus last num input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.com-num-input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 50);
+}
+
+function syncCuposGlobal(val) {
+  const n = parseInt(val) || 12;
+  // Only update comisiones that still have the old global value
+  const globalVal = n;
+  comisiones.forEach(c => { c.cupo = globalVal; });
+  renderComList();
+  scheduleAutoGenerate();
+}
+
+// ---- RENDER ORIG LIST ----
+function renderOrigList() {
+  const list = document.getElementById('orig-list');
+  list.innerHTML = '';
+  origenes.forEach((orig, idx) => {
+    const item = document.createElement('div');
+    item.className = 'orig-item';
+    item.innerHTML = `
+      <div class="orig-field">
+        <div class="orig-field-label">Valor (ID)</div>
+        <input value="${orig.valor}" placeholder="Ej: 4" oninput="updateOrig(${idx},'valor',this.value)">
+      </div>
+      <div class="orig-field">
+        <div class="orig-field-label">Etiqueta visible</div>
+        <input value="${orig.label}" placeholder="Ej: Comisión 4 — Martes 7 a 11" oninput="updateOrig(${idx},'label',this.value)">
+      </div>
+      <button class="btn-remove" onclick="removeOrig(${idx})" title="Eliminar">×</button>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function updateOrig(idx, field, value) {
+  origenes[idx][field] = value;
+  scheduleAutoGenerate();
+}
+
+function removeOrig(idx) {
+  origenes.splice(idx, 1);
+  renderOrigList();
+  scheduleAutoGenerate();
+}
+
+function addOrigen() {
+  origenes.push({ id: uid(), valor: '', label: '' });
+  renderOrigList();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.orig-field input');
+    if (inputs.length) inputs[inputs.length - 2].focus();
+  }, 50);
+}
+
+// ---- PREVIEW ----
+function renderPreview() {
+  const grid = document.getElementById('preview-grid');
+  grid.innerHTML = '';
+  comisiones.forEach(com => {
+    const card = document.createElement('div');
+    card.className = 'preview-card';
+    card.innerHTML = `
+      <div class="preview-card-num">${com.num || '?'}</div>
+      <div class="preview-card-day">${com.dia || '—'}</div>
+      <div class="preview-card-hour">${com.hora || '—'}</div>
+      <span class="preview-cupo">0 / ${com.cupo}</span>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ---- CODE GENERATION ----
+let autoGenTimer = null;
+function scheduleAutoGenerate() {
+  clearTimeout(autoGenTimer);
+  autoGenTimer = setTimeout(generateAndShow, 800);
+  document.getElementById('save-status').textContent = 'cambios sin generar…';
+}
+
+function generateAndShow() {
+  clearTimeout(autoGenTimer);
+  const code = generateCode();
+  renderCode(code);
+  document.getElementById('save-status').textContent = 'código actualizado ✓';
+  renderPreview();
+}
+
+function generateCode() {
+  const cupoMax = parseInt(document.getElementById('cupo-global').value) || 12;
+
+  // Build comisiones array
+  const comsLines = comisiones.map(com => {
+    const safeId = com.id.replace(/'/g, "\\'");
+    const safeNum = com.num.replace(/'/g, "\\'");
+    const safeDia = com.dia.replace(/'/g, "\\'");
+    const safeHora = com.hora.replace(/'/g, "\\'");
+    return `  { id: '${safeId}', num: '${safeNum}', dia: '${safeDia}', hora: '${safeHora}', cupo: ${com.cupo} }`;
+  }).join(',\n');
+
+  // Build select options
+  const optLines = origenes.map(o => {
+    const safeVal = o.valor.replace(/"/g, '&quot;');
+    const safeLabel = o.label.replace(/</g, '&lt;');
+    return `          <option value="${safeVal}">${safeLabel}</option>`;
+  }).join('\n');
+
+  // Check if all cupos are same as global
+  const allSame = comisiones.every(c => c.cupo === cupoMax);
+
+  let cupoComment = allSame
+    ? `// Cupo máximo global (mismo para todas las comisiones)\nconst CUPO_MAX = ${cupoMax};`
+    : `// Cupo máximo global (referencia — cada comisión puede tener su propio cupo)\nconst CUPO_MAX = ${cupoMax};`;
+
+  return `// ============================================================
+// CONFIGURACIÓN GENERADA POR PANEL ADMIN
+// Fecha: ${new Date().toLocaleString('es-AR')}
+// ============================================================
+
+const _p = atob("amVmZXNvcmdhbmljYQ==");
+
+${cupoComment}
+
+const comisiones = [
+${comsLines}
+];
+
+// ---- OPCIONES DE COMISIÓN ORIGEN (pegar en index.html) ----
+// <select id="comision-original">
+//   <option value="">Seleccioná tu comisión actual</option>
+${optLines.split('\n').map(l => '// ' + l.trim()).join('\n')}
+// </select>`;
+}
+
+function renderCode(code) {
+  // Simple syntax highlight
+  const escaped = code
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  const highlighted = escaped
+    .replace(/(\/\/ .*)/g, '<span class="cm">$1</span>')
+    .replace(/\b(const|let|var|function|return|import|export|from|async|await|new)\b/g, '<span class="kw">$1</span>')
+    .replace(/'([^'\\]|\\.)*'/g, '<span class="str">$&</span>')
+    .replace(/: (\d+)/g, ': <span class="num">$1</span>')
+    .replace(/\b(id|num|dia|hora|cupo)\b(?=:)/g, '<span class="key">$1</span>');
+
+  document.getElementById('code-output').innerHTML = highlighted;
+}
+
+function copyCode() {
+  const code = generateCode();
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copiar';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
