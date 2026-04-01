@@ -409,10 +409,10 @@
       <div class="field">
         <label>Comisión de origen</label>
         <select id="comision-original">
-          <option value="">Seleccioná tu comisión actual</option>
           <option value="4">Comisión 4 — Martes 7 a 11</option>
           <option value="5">Comisión 5 — Martes 12 a 16</option>
           <option value="8">Comisión 8 — Lunes 15:30 a 19:30</option>
+          <option value="tuvieja">tuvieja</option>
         </select>
       </div>
     </div>
@@ -445,7 +445,12 @@
           <tbody id="inscripciones-body"></tbody>
         </table>
       </div>
-      <button class="btn-admin" onclick="descargarExcel()" style="margin-top: 1rem;">Descargar Excel</button>
+      <div style="display: flex; gap: 10px; margin-top: 1rem;">
+        <button class="btn-admin" onclick="descargarExcel()">Descargar Excel</button>
+        <a href="admin-config.html" class="btn-admin" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center; background: var(--accent); color: white; border: 1px solid var(--accent-border);">
+          ⚙️ Configurar Comisiones
+        </a>
+      </div>
     </div>
   </div>
 

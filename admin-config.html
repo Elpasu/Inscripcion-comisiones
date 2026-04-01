@@ -144,7 +144,6 @@
 </head>
 <body>
 
-<!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">FBIOyF · UNR</div>
@@ -191,7 +190,6 @@
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">Admin</div>
@@ -205,17 +203,16 @@
   </div>
 
   <div class="layout">
-    <!-- PANEL IZQ: CONFIG -->
     <div class="panel">
 
       <div class="panel-title">Cupo por defecto</div>
       <div class="cupo-global-row">
         <div>
-          <label>Cupos máximos por comisión</label>
-          <small>Se aplica a todas a la vez. Editable individualmente.</small>
+          <label>Cupo máximo por comisión</label>
+          <small>Se aplica a todas las comisiones por igual.</small>
         </div>
         <input type="number" id="cupo-global" value="12" min="1" max="999"
-          oninput="syncCuposGlobal(this.value)">
+          oninput="renderPreview(); scheduleAutoGenerate();">
       </div>
 
       <div class="panel-title">Comisiones disponibles (destino)</div>
@@ -233,7 +230,6 @@
 
     </div>
 
-    <!-- PANEL DER: PREVIEW + OUTPUT -->
     <div class="panel">
 
       <div class="panel-title">Vista previa</div>
@@ -293,14 +289,15 @@ function login() {
 }
 
 // ── State ──────────────────────────────────────────────────────────────────
+// CAMBIO: Se eliminó la propiedad ", cupo: 12" de cada objeto del array inicial.
 let comisiones = [
-  { id:'com1',  num:'1',  dia:'Jueves',    hora:'7:00 – 11:00 hs',  cupo:12 },
-  { id:'com2',  num:'2',  dia:'Viernes',   hora:'7:00 – 11:00 hs',  cupo:12 },
-  { id:'com3',  num:'3',  dia:'Miércoles', hora:'7:00 – 11:00 hs',  cupo:12 },
-  { id:'com5a', num:'5A', dia:'Jueves',    hora:'16:00 – 20:00 hs', cupo:12 },
-  { id:'com6',  num:'6',  dia:'Miércoles', hora:'11:30 – 15:30 hs', cupo:12 },
-  { id:'com7',  num:'7',  dia:'Jueves',    hora:'12:00 – 16:00 hs', cupo:12 },
-  { id:'com9',  num:'9',  dia:'Viernes',   hora:'12:00 – 16:00 hs', cupo:12 },
+  { id:'com1',  num:'1',  dia:'Jueves',    hora:'7:00 – 11:00 hs' },
+  { id:'com2',  num:'2',  dia:'Viernes',   hora:'7:00 – 11:00 hs' },
+  { id:'com3',  num:'3',  dia:'Miércoles', hora:'7:00 – 11:00 hs' },
+  { id:'com5a', num:'5A', dia:'Jueves',    hora:'16:00 – 20:00 hs' },
+  { id:'com6',  num:'6',  dia:'Miércoles', hora:'11:30 – 15:30 hs' },
+  { id:'com7',  num:'7',  dia:'Jueves',    hora:'12:00 – 16:00 hs' },
+  { id:'com9',  num:'9',  dia:'Viernes',   hora:'12:00 – 16:00 hs' },
 ];
 let origenes = [
   { id:'o1', valor:'4', label:'Comisión 4 — Martes 7 a 11'       },
@@ -351,8 +348,7 @@ function parseAndSyncFromSource(src) {
       while ((m = re.exec(comMatch[1])) !== null) {
         const obj = {};
         for (const [,k,v] of m[0].matchAll(/(\w+):\s*'([^']*)'/g)) obj[k] = v;
-        const cm = m[0].match(/cupo:\s*(\d+)/);
-        if (cm) obj.cupo = parseInt(cm[1]);
+        // CAMBIO: Se eliminó la línea que buscaba "cupo: X" en el string original para meterlo en obj.cupo
         if (obj.id) items.push(obj);
       }
       if (items.length) { comisiones = items; liveComisiones = JSON.parse(JSON.stringify(items)); renderComList(); }
@@ -377,7 +373,8 @@ function updateDiff() {
   comisiones.forEach(c => {
     const live = liveComisiones.find(l => l.id === c.id);
     if (!live) changes.push({ type:'added',   text:`+ Comisión ${c.num} (${c.dia})` });
-    else if (live.num!==c.num||live.dia!==c.dia||live.hora!==c.hora||String(live.cupo)!==String(c.cupo))
+    // CAMBIO: Se eliminó "||String(live.cupo)!==String(c.cupo)" de esta comprobación
+    else if (live.num!==c.num||live.dia!==c.dia||live.hora!==c.hora)
       changes.push({ type:'changed', text:`~ Comisión ${c.num}: modificada` });
   });
   liveComisiones.forEach(l => {
@@ -415,13 +412,8 @@ function renderComList() {
         <input value="${esc(com.hora)}" placeholder="7:00 – 11:00 hs"
           oninput="updateCom(${idx},'hora',this.value)">
       </div>
-      <div class="cupo-cell">
-        <div class="com-field-label">Cupos</div>
-        <div class="cupo-cell-row">
-          <input type="number" value="${com.cupo}" min="1" max="999"
-            oninput="updateCom(${idx},'cupo',parseInt(this.value)||1)">
-          <button class="btn-remove" onclick="removeCom(${idx})">×</button>
-        </div>
+      <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
+        <button class="btn-remove" onclick="removeCom(${idx})" title="Eliminar comisión">×</button>
       </div>`;
     list.appendChild(item);
   });
@@ -431,16 +423,13 @@ function renderComList() {
 function updateCom(idx, field, value) { comisiones[idx][field]=value; renderPreview(); scheduleAutoGenerate(); }
 function removeCom(idx)               { comisiones.splice(idx,1); renderComList(); scheduleAutoGenerate(); }
 function addComision() {
-  comisiones.push({ id:uid(), num:'', dia:'', hora:'',
-    cupo: parseInt(document.getElementById('cupo-global').value)||12 });
+  // CAMBIO: Se eliminó ", cupo: parseInt(...)" del push.
+  comisiones.push({ id:uid(), num:'', dia:'', hora:'' });
   renderComList();
   setTimeout(() => { const inp = document.querySelectorAll('.com-num-input'); if(inp.length) inp[inp.length-1].focus(); }, 50);
 }
-function syncCuposGlobal(val) {
-  const n = parseInt(val)||12;
-  comisiones.forEach(c => { c.cupo = n; });
-  renderComList(); scheduleAutoGenerate();
-}
+
+// CAMBIO: Se eliminó la función completa "syncCuposGlobal(val)" porque ya no es necesaria.
 
 // ── Render orígenes ────────────────────────────────────────────────────────
 function renderOrigList() {
@@ -473,6 +462,9 @@ function addOrigen() {
 // ── Preview ────────────────────────────────────────────────────────────────
 function renderPreview() {
   const grid = document.getElementById('preview-grid');
+  // CAMBIO: La preview ahora va a buscar siempre el número global
+  const cupoGlobal = parseInt(document.getElementById('cupo-global').value) || 12;
+  
   grid.innerHTML = '';
   comisiones.forEach(com => {
     const card = document.createElement('div');
@@ -481,7 +473,7 @@ function renderPreview() {
       <div class="preview-card-num">${esc(com.num)||'?'}</div>
       <div class="preview-card-day">${esc(com.dia)||'—'}</div>
       <div class="preview-card-hour">${esc(com.hora)||'—'}</div>
-      <span class="preview-cupo">0 / ${com.cupo}</span>`;
+      <span class="preview-cupo">0 / ${cupoGlobal}</span>`; // Usa cupoGlobal
     grid.appendChild(card);
   });
 }
@@ -503,7 +495,8 @@ function generateAndShow() {
 function generateConfigBlock() {
   const cupoMax = parseInt(document.getElementById('cupo-global').value)||12;
   const comsLines = comisiones.map(c =>
-    `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}', cupo: ${c.cupo} }`
+    // CAMBIO: Se borró la parte del final que inyectaba ", cupo: XX"
+    `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}' }`
   ).join(',\n');
   const optLines = origenes.map(o =>
     `          <option value="${o.valor.replace(/"/g,'&quot;')}">${o.label.replace(/</g,'&lt;')}</option>`
