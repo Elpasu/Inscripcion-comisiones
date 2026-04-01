@@ -6,17 +6,21 @@ import {
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = 48;
-const DB_COLLECTION = 'inscripciones_1775066222974';
+const DB_COLLECTION = 'inscripciones_1775067017172';
 
 const comisiones = [
   { id: 'com2', num: '2', dia: 'Viernes', hora: '07:00 a 11:00 hs' },
   { id: 'com3', num: '3', dia: 'Miércoles', hora: '07:00 a 11:00 hs' },
-  { id: 'com1', num: '1', dia: 'Jueves', hora: '16:00 a 20:00 hs' }
+  { id: 'com1', num: '1', dia: 'Jueves', hora: '16:00 a 20:00 hs' },
+  { id: 'com4', num: '4', dia: 'Martes', hora: '07:00 a 11:00 hs' },
+  { id: 'com5', num: '5', dia: 'Martes', hora: '12:00 a 16:00 hs' },
+  { id: 'com5a', num: '5A', dia: 'Jueves', hora: '16:00 a 20:00 hs' }
 ];
 
 const origenes = [
-  { valor: '5', label: 'Comisión 5 — Martes 12:00 a 16:00 hs' },
-  { valor: '4', label: 'Comisión 4 — Martes 07:00 a 11:00 hs' }
+  { valor: '9', label: 'Comisión 9 — Viernes 12:00 a 16:00 hs' },
+  { valor: '8', label: 'Comisión 8 — Lunes 15:30 a 19:30 hs' },
+  { valor: '7', label: 'Comisión 7 — Jueves 12:00 a 16:00 hs' }
 ];
 
 let inscripciones = [];
