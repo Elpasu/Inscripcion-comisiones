@@ -6,7 +6,7 @@ import {
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = 7;
-const DB_COLLECTION = 'inscripciones_1776008736417';
+const DB_COLLECTION = 'inscripciones_1776008870207';
 
 const comisiones = [
   { id: 'com1', num: '1', dia: 'Jueves', hora: '16:00 a 20:00 hs' },
