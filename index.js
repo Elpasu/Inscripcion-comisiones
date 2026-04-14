@@ -9,7 +9,7 @@ const CUPO_MAX = 7;
 const DB_COLLECTION = 'inscripciones_1776008870207';
 
 const comisiones = [
-  { id: 'com1', num: '1', dia: 'Jueves', hora: '16:00 a 20:00 hs' },
+  { id: 'com1', num: '1', dia: 'Jueves', hora: '07:00 a 11:00 hs' },
   { id: 'com3', num: '3', dia: 'Miércoles', hora: '07:00 a 11:00 hs' },
   { id: 'com4', num: '4', dia: 'Martes', hora: '07:00 a 11:00 hs' },
   { id: 'com5', num: '5', dia: 'Martes', hora: '12:00 a 16:00 hs' },
