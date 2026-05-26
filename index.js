@@ -5,14 +5,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
-const CUPO_MAX = 11;
-const DB_COLLECTION = 'inscripciones_1776366084785';
+const CUPO_MAX = 22;
+const DB_COLLECTION = 'inscripciones_1779805518406';
 
 const comisiones = [
-  { id: 'com3', num: '3', dia: 'Miércoles', hora: '07:00 a 11:00 hs' },
   { id: 'com4', num: '4', dia: 'Martes', hora: '07:00 a 11:00 hs' },
   { id: 'com5', num: '5', dia: 'Martes', hora: '12:00 a 16:00 hs' },
-  { id: 'com6', num: '6', dia: 'Miércoles', hora: '11:30 a 15:30 hs' },
   { id: 'com8', num: '8', dia: 'Lunes', hora: '15:30 a 19:30 hs' },
   { id: 'com2', num: '2', dia: 'Viernes', hora: '07:00 a 11:00 hs' },
   { id: 'com9', num: '9', dia: 'Viernes', hora: '12:00 a 16:00 hs' }
@@ -21,7 +19,9 @@ const comisiones = [
 const origenes = [
   { valor: '1', label: 'Comisión 1 — Jueves 07:00 a 11:00 hs' },
   { valor: '5A', label: 'Comisión 5A — Jueves 16:00 a 20:00 hs' },
-  { valor: '7', label: 'Comisión 7 — Jueves 12:00 a 16:00 hs' }
+  { valor: '7', label: 'Comisión 7 — Jueves 12:00 a 16:00 hs' },
+  { valor: '6', label: 'Comisión 6 — Miércoles 11:30 a 15:30 hs' },
+  { valor: '3', label: 'Comisión 3 — Miércoles 07:00 a 11:00 hs' }
 ];
 
 let inscripciones = [];
