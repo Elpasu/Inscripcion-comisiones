@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
-const CUPO_MAX = 22;
+const CUPO_MAX = 20;
 const DB_COLLECTION = 'inscripciones_1779805518406';
 
 const comisiones = [
