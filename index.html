@@ -459,6 +459,7 @@
 </div>
 
 <script type="module" src="firebase.js"></script>
-<script type="module" src="index.js"></script>
+<!-- index.js cambia cada vez que se publica desde el panel: se carga con ?v= para saltear la caché -->
+<script type="module">import('./index.js?v=' + Date.now());</script>
 </body>
 </html>

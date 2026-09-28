@@ -40,7 +40,7 @@ Docente ──> admin-config.html
    - **Comisiones de origen**: opciones del desplegable «¿en qué comisión estabas?».
    - **Nueva lista**: tildar para empezar de cero. Crea una colección nueva en Firestore (`inscripciones_<timestamp>`) y la anterior queda como respaldo; no se borra nada.
 5. Revisar la vista previa y el cuadro de cambios, y apretar **↑ Publicar en GitHub**.
-6. GitHub Pages tarda 1–2 minutos en actualizar. Si no se ven los cambios, recargar con `Ctrl + F5`.
+6. GitHub Pages tarda 1–2 minutos en actualizar. Después alcanza con recargar la página (F5): `index.html` carga `index.js` con `?v=<timestamp>` para que el navegador no use una versión en caché.
 
 Las credenciales (contraseña del panel y token) están en el manual interno en PDF, que **no** se versiona. No las subas al repo.
 
