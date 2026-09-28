@@ -6,28 +6,28 @@ import {
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = 9;
-const DB_COLLECTION = 'inscripciones_1790617691674';
+const DB_COLLECTION = 'inscripciones_1790619613026';
 
 const catalogo = [
-  {"id":"com1","num":"1","dia":"Martes","hora":"07:30 a 11:30 hs","jtp":""},
-  {"id":"com2","num":"2","dia":"Viernes","hora":"07:00 a 11:00 hs","jtp":""},
-  {"id":"com3","num":"3","dia":"Miércoles","hora":"08:00 a 12:00 hs","jtp":""},
-  {"id":"com4","num":"4","dia":"Jueves","hora":"07:30 a 11:30 hs","jtp":""},
-  {"id":"com5","num":"5","dia":"Jueves","hora":"13:00 a 17:00 hs","jtp":""},
-  {"id":"com6","num":"6","dia":"Viernes","hora":"12:30 a 16:30 hs","jtp":""},
-  {"id":"com8","num":"8","dia":"Martes","hora":"13:30 a 17:30 hs","jtp":""},
-  {"id":"com9","num":"9","dia":"Miércoles","hora":"12:30 a 16:30 hs","jtp":""},
-  {"id":"com10","num":"10","dia":"Jueves","hora":"17:00 a 21:00 hs","jtp":""}
+  {"id":"com1","num":"1","dia":"Martes","hora":"07:30 a 11:30 hs","jtp":"Lucas M"},
+  {"id":"com2","num":"2","dia":"Viernes","hora":"07:00 a 11:00 hs","jtp":"Darío"},
+  {"id":"com3","num":"3","dia":"Miércoles","hora":"08:00 a 12:00 hs","jtp":"Tomi"},
+  {"id":"com4","num":"4","dia":"Jueves","hora":"07:30 a 11:30 hs","jtp":"Marta"},
+  {"id":"com5","num":"5","dia":"Jueves","hora":"13:00 a 17:00 hs","jtp":"Lucas P"},
+  {"id":"com6","num":"6","dia":"Viernes","hora":"12:30 a 16:30 hs","jtp":"Mai y Lina"},
+  {"id":"com8","num":"8","dia":"Martes","hora":"13:30 a 17:30 hs","jtp":"Flor y Bet"},
+  {"id":"com9","num":"9","dia":"Miércoles","hora":"12:30 a 16:30 hs","jtp":"Lu"},
+  {"id":"com10","num":"10","dia":"Jueves","hora":"17:00 a 21:00 hs","jtp":"Pame"}
 ];
 
 const comisiones = [
-  { id: 'com1', num: '1', dia: 'Martes', hora: '07:30 a 11:30 hs', jtp: '' },
-  { id: 'com2', num: '2', dia: 'Viernes', hora: '07:00 a 11:00 hs', jtp: '' },
-  { id: 'com4', num: '4', dia: 'Jueves', hora: '07:30 a 11:30 hs', jtp: '' },
-  { id: 'com5', num: '5', dia: 'Jueves', hora: '13:00 a 17:00 hs', jtp: '' },
-  { id: 'com6', num: '6', dia: 'Viernes', hora: '12:30 a 16:30 hs', jtp: '' },
-  { id: 'com8', num: '8', dia: 'Martes', hora: '13:30 a 17:30 hs', jtp: '' },
-  { id: 'com10', num: '10', dia: 'Jueves', hora: '17:00 a 21:00 hs', jtp: '' }
+  { id: 'com1', num: '1', dia: 'Martes', hora: '07:30 a 11:30 hs', jtp: 'Lucas M' },
+  { id: 'com2', num: '2', dia: 'Viernes', hora: '07:00 a 11:00 hs', jtp: 'Darío' },
+  { id: 'com4', num: '4', dia: 'Jueves', hora: '07:30 a 11:30 hs', jtp: 'Marta' },
+  { id: 'com5', num: '5', dia: 'Jueves', hora: '13:00 a 17:00 hs', jtp: 'Lucas P' },
+  { id: 'com6', num: '6', dia: 'Viernes', hora: '12:30 a 16:30 hs', jtp: 'Mai y Lina' },
+  { id: 'com8', num: '8', dia: 'Martes', hora: '13:30 a 17:30 hs', jtp: 'Flor y Bet' },
+  { id: 'com10', num: '10', dia: 'Jueves', hora: '17:00 a 21:00 hs', jtp: 'Pame' }
 ];
 
 const origenes = [
