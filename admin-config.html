@@ -95,6 +95,29 @@
 
     .section-sep { height: 1px; background: var(--border); margin: 1.75rem 0; }
 
+    /* CATALOGO */
+    .cat-row {
+      display: grid; grid-template-columns: 44px 1fr auto auto 28px; gap: 6px 8px; align-items: center;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 10px 12px; margin-bottom: 8px;
+    }
+    .cat-row:focus-within { border-color: var(--border-lit); }
+    .cat-num { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--accent); }
+    .cat-row .jtp { grid-column: 2 / 5; }
+    .cat-input {
+      padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; min-width: 0;
+      color-scheme: dark; transition: border-color 0.15s;
+    }
+    .cat-input:focus { border-color: var(--accent); }
+    .cat-input.invalid { border-color: var(--danger); }
+    .cat-input[type="time"] { font-family: var(--mono); width: 96px; }
+    .cat-sep { font-size: 12px; color: var(--text-hint); }
+    .cat-hours { display: flex; align-items: center; gap: 6px; grid-column: 3 / 5; }
+    .cat-add { display: flex; gap: 8px; margin-top: 10px; }
+    .cat-add input { width: 110px; }
+    .cat-err { font-size: 12px; color: var(--danger); font-family: var(--mono); min-height: 16px; margin-top: 6px; }
+
     /* PREVIEW */
     .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 1rem; }
     .preview-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 10px; }
@@ -205,6 +228,20 @@
   <div class="layout">
     <div class="panel">
 
+      <div class="panel-title">Comisiones del cuatrimestre</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
+        Día, horario y JTP de cada comisión. Se actualiza una vez por cuatrimestre.
+      </p>
+      <div id="cat-list"></div>
+      <div class="cat-add">
+        <input type="text" id="cat-new-num" class="cat-input" placeholder="N° (ej. 11)"
+          onkeydown="if(event.key==='Enter') addCatalogo()">
+        <button class="btn-admin" onclick="addCatalogo()">Agregar comisión</button>
+      </div>
+      <div class="cat-err" id="cat-err"></div>
+
+      <div class="section-sep"></div>
+
       <div class="panel-title">Cupo por defecto</div>
       <div class="cupo-global-row">
         <div>
@@ -301,106 +338,198 @@ function login() {
   init();
 }
 
-// ── Master Data Estanca ────────────────────────────────────────────────────
-const TODAS_COMISIONES = [
-  { id:'com1',  num:'1',  dia:'Jueves',    hora:'07:00 a 11:00 hs', val:'1' },
-  { id:'com2',  num:'2',  dia:'Viernes',   hora:'07:00 a 11:00 hs', val:'2' },
-  { id:'com3',  num:'3',  dia:'Miércoles', hora:'07:00 a 11:00 hs', val:'3' },
-  { id:'com4',  num:'4',  dia:'Martes',    hora:'07:00 a 11:00 hs', val:'4' },
-  { id:'com5',  num:'5',  dia:'Martes',    hora:'12:00 a 16:00 hs', val:'5' },
-  { id:'com5a', num:'5A', dia:'Jueves',    hora:'16:00 a 20:00 hs', val:'5A' },
-  { id:'com6',  num:'6',  dia:'Miércoles', hora:'11:30 a 15:30 hs', val:'6' },
-  { id:'com7',  num:'7',  dia:'Jueves',    hora:'12:00 a 16:00 hs', val:'7' },
-  { id:'com8',  num:'8',  dia:'Lunes',     hora:'15:30 a 19:30 hs', val:'8' },
-  { id:'com9',  num:'9',  dia:'Viernes',   hora:'12:00 a 16:00 hs', val:'9' }
-];
+// ── Catálogo de comisiones ─────────────────────────────────────────────────
+// Se lee de `const catalogo` en index.js (GitHub) y se edita desde este panel.
+const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-let comisionesActivas = []; 
-let origenesActivos = [];   
+let catalogo = [];          // [{ id, num, dia, hora, jtp }]
+let liveCatalogo = [];      // versión publicada, para el diff
+let catalogoCargado = false;
+
+let comisionesActivas = [];
+let origenesActivos = [];
 
 let currentFileSha  = null;
-let liveComisionesActivas  = []; 
+let liveComisionesActivas  = [];
 
 // Control de base de datos
 let currentDbCollection = 'inscripciones';
 
+function getCom(id) { return catalogo.find(c => c.id === id); }
+function labelCom(c) { return `Comisión ${c.num} — ${c.dia} ${c.hora}`; }
+
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
-  populateSelects();
+  renderCatalogo();
   renderLists();
   generateAndShow();
   await fetchCurrentFile();
 }
 
 function populateSelects() {
-  const opts = TODAS_COMISIONES.map(c => 
-    `<option value="${c.id}">Comisión ${c.num} — ${c.dia} ${c.hora}</option>`
-  ).join('');
+  const opts = catalogo.map(c => `<option value="${esc(c.id)}">${esc(labelCom(c))}</option>`).join('');
   document.getElementById('sel-add-com').innerHTML = opts;
   document.getElementById('sel-add-orig').innerHTML = opts;
 }
 
 async function fetchCurrentFile() {
+  const status = document.getElementById('publish-status');
   try {
     const res = await ghFetch('GET',
       `/repos/${GH_OWNER}/${GH_REPO}/contents/${INDEX_JS_PATH}?ref=${BRANCH}`);
-    if (!res.ok) return;
+    if (!res.ok) throw new Error(`HTTP ${res.status} al leer ${INDEX_JS_PATH} (¿token válido?)`);
     const data = await res.json();
     currentFileSha = data.sha;
     const src = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
     parseAndSyncFromSource(src);
     generateAndShow();
-  } catch (_) { /* diff opcional */ }
+  } catch (err) {
+    status.className = 'publish-status error';
+    status.textContent = `No se pudo cargar la configuración actual: ${err.message}`;
+  }
 }
 
 function parseAndSyncFromSource(src) {
-  try {
-    const cupoMatch = src.match(/const CUPO_MAX\s*=\s*(\d+)/);
-    if (cupoMatch) document.getElementById('cupo-global').value = cupoMatch[1];
+  const cupoMatch = src.match(/const CUPO_MAX\s*=\s*(\d+)/);
+  if (cupoMatch) document.getElementById('cupo-global').value = cupoMatch[1];
 
-    // Lee el nombre de la DB actual
-    const dbMatch = src.match(/const DB_COLLECTION\s*=\s*'([^']+)'/);
-    if (dbMatch) currentDbCollection = dbMatch[1];
+  // Lee el nombre de la DB actual
+  const dbMatch = src.match(/const DB_COLLECTION\s*=\s*'([^']+)'/);
+  if (dbMatch) currentDbCollection = dbMatch[1];
 
-    const comMatch = src.match(/const comisiones\s*=\s*\[([\s\S]*?)\];/);
-    if (comMatch) {
-      const ids = [];
-      const re = /id:\s*'([^']+)'/g; let m;
-      while ((m = re.exec(comMatch[1])) !== null) ids.push(m[1]);
-      comisionesActivas = ids;
-      liveComisionesActivas = [...ids];
+  const catMatch = src.match(/const catalogo\s*=\s*(\[[\s\S]*?\r?\n\]);/);
+  if (!catMatch) throw new Error('index.js no tiene "const catalogo".');
+  catalogo = JSON.parse(catMatch[1]).map(c => ({
+    id: c.id, num: c.num, dia: c.dia || '', hora: c.hora || '', jtp: c.jtp || ''
+  }));
+  liveCatalogo = catalogo.map(c => ({ ...c }));
+  catalogoCargado = true;
+
+  const comMatch = src.match(/const comisiones\s*=\s*\[([\s\S]*?)\];/);
+  if (comMatch) {
+    const ids = [];
+    const re = /id:\s*'([^']+)'/g; let m;
+    while ((m = re.exec(comMatch[1])) !== null) if (getCom(m[1])) ids.push(m[1]);
+    comisionesActivas = ids;
+    liveComisionesActivas = [...ids];
+  }
+
+  const origMatch = src.match(/const origenes\s*=\s*\[([\s\S]*?)\];/);
+  if (origMatch) {
+    const ids = [];
+    const re = /valor:\s*'([^']+)'/g; let m;
+    while ((m = re.exec(origMatch[1])) !== null) {
+      const c = catalogo.find(x => x.num === m[1]);
+      if (c) ids.push(c.id);
     }
+    origenesActivos = ids;
+  }
+  renderCatalogo();
+  renderLists();
+}
 
-    const origMatch = src.match(/const origenes\s*=\s*\[([\s\S]*?)\];/);
-    if (origMatch) {
-      const ids = [];
-      const re = /valor:\s*'([^']+)'/g; let m;
-      while ((m = re.exec(origMatch[1])) !== null) {
-        const c = TODAS_COMISIONES.find(x => x.val === m[1]);
-        if(c) ids.push(c.id);
-      }
-      origenesActivos = ids;
-    }
-    renderLists();
-  } catch (_) {}
+// ── Editor del catálogo ────────────────────────────────────────────────────
+function splitHora(hora) {
+  const m = String(hora).match(/(\d{1,2}):(\d{2})\s*a\s*(\d{1,2}):(\d{2})/);
+  if (!m) return ['', ''];
+  return [`${m[1].padStart(2,'0')}:${m[2]}`, `${m[3].padStart(2,'0')}:${m[4]}`];
+}
+
+function renderCatalogo() {
+  document.getElementById('cat-list').innerHTML = catalogo.map(c => {
+    const [desde, hasta] = splitHora(c.hora);
+    const diaOpts = DIAS.map(d => `<option${d === c.dia ? ' selected' : ''}>${d}</option>`).join('');
+    return `
+      <div class="cat-row" data-id="${esc(c.id)}">
+        <div class="cat-num">${esc(c.num)}</div>
+        <select class="cat-input${c.dia ? '' : ' invalid'}" onchange="updateCatalogo('${q(c.id)}')" data-f="dia">
+          ${c.dia ? '' : '<option value="" selected>Día…</option>'}${diaOpts}
+        </select>
+        <div class="cat-hours">
+          <input type="time" class="cat-input${desde ? '' : ' invalid'}" value="${desde}" data-f="desde" onchange="updateCatalogo('${q(c.id)}')">
+          <span class="cat-sep">a</span>
+          <input type="time" class="cat-input${hasta ? '' : ' invalid'}" value="${hasta}" data-f="hasta" onchange="updateCatalogo('${q(c.id)}')">
+        </div>
+        <button class="btn-remove" title="Eliminar comisión" onclick="removeCatalogo('${q(c.id)}')">×</button>
+        <input type="text" class="cat-input jtp" placeholder="JTP a cargo" value="${esc(c.jtp)}" data-f="jtp" oninput="updateCatalogo('${q(c.id)}')">
+      </div>`;
+  }).join('');
+  populateSelects();
+}
+
+function updateCatalogo(id) {
+  const c = getCom(id);
+  const row = document.querySelector(`.cat-row[data-id="${CSS.escape(id)}"]`);
+  const f = name => row.querySelector(`[data-f="${name}"]`);
+  const desde = f('desde').value, hasta = f('hasta').value;
+  c.dia  = f('dia').value;
+  c.hora = desde && hasta ? `${desde} a ${hasta} hs` : '';
+  c.jtp  = f('jtp').value.trim();
+  f('dia').classList.toggle('invalid', !c.dia);
+  f('desde').classList.toggle('invalid', !desde);
+  f('hasta').classList.toggle('invalid', !hasta);
+  populateSelects();
+  renderLists();
+}
+
+function addCatalogo() {
+  const input = document.getElementById('cat-new-num');
+  const err = document.getElementById('cat-err');
+  const num = input.value.trim().toUpperCase();
+  const id = 'com' + num.toLowerCase();
+  err.textContent = '';
+  if (!/^[0-9]+[A-Z]?$/.test(num)) { err.textContent = 'Número inválido (ej. 11 o 5A).'; return; }
+  if (catalogo.some(c => c.num === num || c.id === id)) { err.textContent = `La comisión ${num} ya existe.`; return; }
+  catalogo.push({ id, num, dia: '', hora: '', jtp: '' });
+  input.value = '';
+  renderCatalogo();
+  renderLists();
+}
+
+function removeCatalogo(id) {
+  const c = getCom(id);
+  const enUso = comisionesActivas.includes(id) || origenesActivos.includes(id);
+  const msg = `¿Eliminar la comisión ${c.num} del cuatrimestre?` +
+    (enUso ? '\nTambién se quitará de las listas de destino/origen.' : '');
+  if (!confirm(msg)) return;
+  catalogo = catalogo.filter(x => x.id !== id);
+  comisionesActivas = comisionesActivas.filter(x => x !== id);
+  origenesActivos = origenesActivos.filter(x => x !== id);
+  renderCatalogo();
+  renderLists();
+}
+
+function catalogoIncompleto() {
+  return catalogo.filter(c => !c.dia || !c.hora).map(c => c.num);
 }
 
 // ── Diff ───────────────────────────────────────────────────────────────────
 function updateDiff() {
   if (!liveComisionesActivas) return;
   const changes = [];
-  
+
+  catalogo.forEach(c => {
+    const old = liveCatalogo.find(x => x.id === c.id);
+    if (!old) { changes.push({ type:'added', text:`+ Comisión ${c.num} creada: ${c.dia} ${c.hora}` }); return; }
+    if (old.dia !== c.dia || old.hora !== c.hora)
+      changes.push({ type:'changed', text:`~ Comisión ${c.num}: ${old.dia} ${old.hora} → ${c.dia} ${c.hora}` });
+    if (old.jtp !== c.jtp)
+      changes.push({ type:'changed', text:`~ Comisión ${c.num}: JTP ${old.jtp || '(vacío)'} → ${c.jtp || '(vacío)'}` });
+  });
+  liveCatalogo.forEach(old => {
+    if (!getCom(old.id)) changes.push({ type:'removed', text:`− Comisión ${old.num} eliminada del cuatrimestre` });
+  });
+
   comisionesActivas.forEach(id => {
     if (!liveComisionesActivas.includes(id)) {
-      const c = TODAS_COMISIONES.find(x=>x.id===id);
-      changes.push({ type:'added', text:`+ Comisión ${c.num} activada (Destino)` });
+      changes.push({ type:'added', text:`+ Comisión ${getCom(id).num} activada (Destino)` });
     }
   });
-  
+
   liveComisionesActivas.forEach(id => {
     if (!comisionesActivas.includes(id)) {
-      const c = TODAS_COMISIONES.find(x=>x.id===id);
-      changes.push({ type:'removed', text:`− Comisión ${c.num} quitada (Destino)` });
+      const c = getCom(id) || liveCatalogo.find(x => x.id === id);
+      changes.push({ type:'removed', text:`− Comisión ${c ? c.num : id} quitada (Destino)` });
     }
   });
 
@@ -419,25 +548,16 @@ function updateDiff() {
 
 // ── Render Arrays ──────────────────────────────────────────────────────────
 function renderLists() {
-  const cList = document.getElementById('com-list');
-  cList.innerHTML = comisionesActivas.map(id => {
-    const c = TODAS_COMISIONES.find(x => x.id === id);
-    return `
+  const item = (c, onRemove) => `
       <div class="list-item-readonly">
-        <div class="info"><strong>Com. ${c.num}</strong> ${c.dia} ${c.hora}</div>
-        <button class="btn-remove" onclick="removeCom('${c.id}')">×</button>
+        <div class="info"><strong>Com. ${esc(c.num)}</strong> ${esc(c.dia)} ${esc(c.hora)}${c.jtp ? ' · ' + esc(c.jtp) : ''}</div>
+        <button class="btn-remove" onclick="${onRemove}('${q(c.id)}')">×</button>
       </div>`;
-  }).join('');
 
-  const oList = document.getElementById('orig-list');
-  oList.innerHTML = origenesActivos.map(id => {
-    const c = TODAS_COMISIONES.find(x => x.id === id);
-    return `
-      <div class="list-item-readonly">
-        <div class="info"><strong>Com. ${c.num}</strong> ${c.dia} ${c.hora}</div>
-        <button class="btn-remove" onclick="removeOrig('${c.id}')">×</button>
-      </div>`;
-  }).join('');
+  document.getElementById('com-list').innerHTML =
+    comisionesActivas.map(id => item(getCom(id), 'removeCom')).join('');
+  document.getElementById('orig-list').innerHTML =
+    origenesActivos.map(id => item(getCom(id), 'removeOrig')).join('');
 
   renderPreview();
   scheduleAutoGenerate();
@@ -445,7 +565,7 @@ function renderLists() {
 
 function addCom() {
   const val = document.getElementById('sel-add-com').value;
-  if(!comisionesActivas.includes(val)) comisionesActivas.push(val);
+  if (val && !comisionesActivas.includes(val)) comisionesActivas.push(val);
   renderLists();
 }
 function removeCom(id) {
@@ -455,7 +575,7 @@ function removeCom(id) {
 
 function addOrig() {
   const val = document.getElementById('sel-add-orig').value;
-  if(!origenesActivos.includes(val)) origenesActivos.push(val);
+  if (val && !origenesActivos.includes(val)) origenesActivos.push(val);
   renderLists();
 }
 function removeOrig(id) {
@@ -467,16 +587,17 @@ function removeOrig(id) {
 function renderPreview() {
   const grid = document.getElementById('preview-grid');
   const cupoGlobal = parseInt(document.getElementById('cupo-global').value) || 15;
-  
+
   grid.innerHTML = '';
   comisionesActivas.forEach(id => {
-    const com = TODAS_COMISIONES.find(x => x.id === id);
+    const com = getCom(id);
     const card = document.createElement('div');
     card.className = 'preview-card';
     card.innerHTML = `
       <div class="preview-card-num">${esc(com.num)}</div>
       <div class="preview-card-day">${esc(com.dia)}</div>
       <div class="preview-card-hour">${esc(com.hora)}</div>
+      ${com.jtp ? `<div class="preview-card-hour">JTP: ${esc(com.jtp)}</div>` : ''}
       <span class="preview-cupo">0 / ${cupoGlobal}</span>`;
     grid.appendChild(card);
   });
@@ -497,7 +618,7 @@ function generateAndShow() {
 
 function generateConfigBlock() {
   const cupoMax = parseInt(document.getElementById('cupo-global').value)||15;
-  
+
   // Logica de Reseteo DB
   let collectionName = currentDbCollection || 'inscripciones';
   const resetCb = document.getElementById('reset-db');
@@ -508,19 +629,27 @@ function generateConfigBlock() {
     window.tempCollectionName = null;
   }
 
+  const catLines = catalogo.map(c =>
+    '  ' + JSON.stringify({ id: c.id, num: c.num, dia: c.dia, hora: c.hora, jtp: c.jtp })
+  ).join(',\n');
+
   const comsLines = comisionesActivas.map(id => {
-    const c = TODAS_COMISIONES.find(x => x.id === id);
-    return `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}' }`;
+    const c = getCom(id);
+    return `  { id: '${q(c.id)}', num: '${q(c.num)}', dia: '${q(c.dia)}', hora: '${q(c.hora)}', jtp: '${q(c.jtp)}' }`;
   }).join(',\n');
-  
+
   const origLines = origenesActivos.map(id => {
-    const c = TODAS_COMISIONES.find(x => x.id === id);
-    return `  { valor: '${q(c.val)}', label: 'Comisión ${q(c.num)} — ${q(c.dia)} ${q(c.hora)}' }`;
+    const c = getCom(id);
+    return `  { valor: '${q(c.num)}', label: '${q(labelCom(c))}' }`;
   }).join(',\n');
-  
+
   return `const _p = atob("amVmZXNvcmdhbmljYQ==");
 const CUPO_MAX = ${cupoMax};
 const DB_COLLECTION = '${collectionName}';
+
+const catalogo = [
+${catLines}
+];
 
 const comisiones = [
 ${comsLines}
@@ -551,7 +680,7 @@ function renderCode(code) {
     .replace(/\b(const|let|var|function|return|import|export|from|async|await|new)\b/g,'<span class="kw">$1</span>')
     .replace(/'([^'\\]|\\.)*'/g,'<span class="str">$&</span>')
     .replace(/: (\d+)/g,': <span class="num">$1</span>')
-    .replace(/\b(id|num|dia|hora|cupo|valor|label)\b(?=:)/g,'<span class="key">$1</span>');
+    .replace(/\b(id|num|dia|hora|jtp|cupo|valor|label)\b(?=:)/g,'<span class="key">$1</span>');
   document.getElementById('code-output').innerHTML = hl;
 }
 
@@ -583,6 +712,18 @@ async function publishToGitHub() {
   const status = document.getElementById('publish-status');
   const resetCb = document.getElementById('reset-db');
   const setBtnState = (state, text) => { btn.className = `btn-publish ${state}`; label.textContent = text; };
+
+  if (!catalogoCargado) {
+    status.className = 'publish-status error';
+    status.textContent = 'Todavía no se cargó la configuración actual desde GitHub. Recargá la página.';
+    return;
+  }
+  const incompletas = catalogoIncompleto();
+  if (incompletas.length) {
+    status.className = 'publish-status error';
+    status.textContent = `Faltan día u horario en: Comisión ${incompletas.join(', ')}.`;
+    return;
+  }
 
   setBtnState('loading', 'Leyendo archivo…');
   status.className = 'publish-status';
@@ -633,6 +774,7 @@ async function publishToGitHub() {
       `<a href="${commitUrl}" target="_blank" style="margin-top:4px;display:inline-block;">Ver commit en GitHub →</a>`;
 
     liveComisionesActivas = [...comisionesActivas];
+    liveCatalogo = catalogo.map(c => ({ ...c }));
     
     // Si se aplicó un reinicio, actualizamos la variable global y destildamos el checkbox
     if (resetCb && resetCb.checked) {
