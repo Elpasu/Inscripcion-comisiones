@@ -1,7 +1,7 @@
 // index.js
 import { db } from './firebase.js';
 import {
-  collection, addDoc, onSnapshot
+  collection, addDoc, onSnapshot, doc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const _p = atob("amVmZXNvcmdhbmljYQ==");
@@ -221,6 +221,12 @@ window.accederAdmin = function() {
   }
 };
 
+function escHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 function renderTabla() {
   const tbody = document.getElementById('inscripciones-body');
   tbody.innerHTML = '';
@@ -228,13 +234,43 @@ function renderTabla() {
     const com = comisiones.find(c => c.id === ins.comisionNueva);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${ins.nombre}</td>
-      <td>${ins.legajo}</td>
-      <td>${ins.comisionOriginal}</td>
-      <td><span class="badge-com">Com. ${com ? com.num : ins.comisionNueva}</span></td>
+      <td>${escHtml(ins.nombre)}</td>
+      <td>${escHtml(ins.legajo)}</td>
+      <td>${escHtml(ins.comisionOriginal)}</td>
+      <td><span class="badge-com">Com. ${escHtml(com ? com.num : ins.comisionNueva)}</span></td>
+      <td class="td-actions"><button class="btn-del" type="button">Eliminar</button></td>
     `;
+    tr.querySelector('.btn-del').addEventListener('click', e => eliminarInscripcion(ins, e.currentTarget));
     tbody.appendChild(tr);
   });
+}
+
+async function eliminarInscripcion(ins, btn) {
+  const com = comisiones.find(c => c.id === ins.comisionNueva);
+  const comTxt = com ? com.num : ins.comisionNueva;
+  const ok = confirm(
+    `¿Eliminar esta inscripción?
+
+${ins.nombre} — DNI ${ins.legajo}
+Comisión ${comTxt}
+
+El cupo se libera y el alumno puede volver a anotarse.`
+  );
+  if (!ok) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Eliminando...';
+  try {
+    await deleteDoc(doc(db, DB_COLLECTION, ins._id));
+    // onSnapshot actualiza la tabla y los cupos solo
+  } catch (error) {
+    console.error('Error al eliminar:', error);
+    alert('No se pudo eliminar la inscripción. ' + (error.code === 'permission-denied'
+      ? 'Firestore no permite borrar: hay que revisar las reglas de seguridad.'
+      : 'Intentá de nuevo.'));
+    btn.disabled = false;
+    btn.textContent = 'Eliminar';
+  }
 }
 
 window.descargarExcel = function() {
@@ -264,7 +300,7 @@ window.descargarExcel = function() {
 
 // ---- Firestore en tiempo real ----
 onSnapshot(collection(db, DB_COLLECTION), snapshot => {
-  inscripciones = snapshot.docs.map(doc => doc.data());
+  inscripciones = snapshot.docs.map(d => ({ _id: d.id, ...d.data() }));
   renderComisiones();
   if (document.getElementById('tabla-inscripciones').style.display !== 'none') {
     renderTabla();

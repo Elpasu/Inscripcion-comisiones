@@ -359,6 +359,20 @@
       margin-top: 1rem;
     }
     .btn-danger:hover { background: var(--danger-bg); }
+    .btn-del {
+      padding: 3px 10px;
+      background: none;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-del:hover { background: var(--danger-bg); }
+    .btn-del:disabled { opacity: 0.4; cursor: wait; }
+    td.td-actions { text-align: right; width: 1%; }
 
     @media (max-width: 480px) {
       .cards-grid { grid-template-columns: repeat(2, 1fr); }
@@ -442,6 +456,7 @@
               <th>DNI</th>
               <th>Com. origen</th>
               <th>Com. nueva</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="inscripciones-body"></tbody>
