@@ -31,7 +31,8 @@ const comisiones = [
 const origenes = [
   { valor: '4', label: 'Comisión 4 — Jueves 07:30 a 11:30 hs' },
   { valor: '5', label: 'Comisión 5 — Jueves 13:00 a 17:00 hs' },
-  { valor: '6', label: 'Comisión 6 — Viernes 12:30 a 16:30 hs' }
+  { valor: '6', label: 'Comisión 6 — Viernes 12:30 a 16:30 hs' },
+  { valor: '10', label: 'Comisión 10 — Jueves 17:00 a 21:00 hs' }
 ];
 
 let inscripciones = [];
